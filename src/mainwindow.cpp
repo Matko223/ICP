@@ -12,29 +12,35 @@ MainWindow::MainWindow(const QString &name, const QString &description, QWidget 
     setAcceptDrops(true);
     ui->listWidget->setDragEnabled(true);
 
-    ui->graphicsView->viewport()->setAcceptDrops(
-        true); // graphicsView receives drops and reacts on events using eventFilter
-    ui->graphicsView->viewport()->installEventFilter(this); // events are handled in eventFilter
+    ui->graphicsView->viewport()->setAcceptDrops(true);
+    ui->graphicsView->viewport()->installEventFilter(this);
 
     ui->listWidget->setSelectionMode(QAbstractItemView::SingleSelection);
     ui->listWidget->setDragDropMode(QAbstractItemView::DragOnly);
 
-    // start initDrag, create mime and drag object
+    // Initialize drag
     connect(ui->listWidget, &QListWidget::itemPressed, this, [this](QListWidgetItem *) {
         initDrag();
     });
 
-    // init scene
+    // Initialize scene
     scene = new QGraphicsScene(this);
     ui->graphicsView->setScene(scene);
-    ui->graphicsView->setSceneRect(0, 0, 500, 500);
+    ui->graphicsView->setSceneRect(0, 0, 1000, 1000);
+
+    // Enable scrollbars
+    ui->graphicsView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+    ui->graphicsView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+
+    // Ensure the view is scrollable by setting alignment
+    ui->graphicsView->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 
     // Connect scene changed signal to update transitions when states move
     connect(scene, &QGraphicsScene::changed, this, &MainWindow::updateTransitions);
 
-    ui->nameDesc->setText(name + " - " + description); // add automaton name and description from startWindow
+    ui->nameDesc->setText(name + " - " + description);
 
-    initializeControlWidget(); // connect control buttons
+    initializeControlWidget();
     logText("Automaton " + name + " initialized");
 }
 

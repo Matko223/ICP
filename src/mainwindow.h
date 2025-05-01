@@ -35,8 +35,8 @@ struct Transition
     QGraphicsEllipseItem *from_state;
     QGraphicsEllipseItem *to_state;
     QGraphicsPathItem *path;
-    QGraphicsPolygonItem *arrow; // Store arrow for updates
-    QGraphicsTextItem *label;   // Store label for updates
+    QGraphicsPolygonItem *arrow;
+    QGraphicsTextItem *label;
 };
 
 QT_BEGIN_NAMESPACE
@@ -62,17 +62,10 @@ public:
     QGraphicsEllipseItem *createState(QString type, QPointF position);
 
     bool createTransitionDialog(QString &transitionName, QString &fromState, QString &toState);
-    QPainterPath createTransitionPath(QGraphicsEllipseItem *from,
-                                      QGraphicsEllipseItem *to,
-                                      QPointF &arrowPos,
-                                      double &angle);
+    QPainterPath createTransitionPath(QGraphicsEllipseItem *from, QGraphicsEllipseItem *to, QPointF &arrowPos, double &angle);
     void drawArrow(const QPointF &arrowPos, double angle);
-    QGraphicsPolygonItem *createArrow(const QPointF &arrowPos, double angle); // Added declaration
-    void setTransitionLabel(const QString &name,
-                            QGraphicsEllipseItem *from,
-                            QGraphicsEllipseItem *to,
-                            QGraphicsPathItem *pathItem,
-                            const QPainterPath &path);
+    QGraphicsPolygonItem *createArrow(const QPointF &arrowPos, double angle);
+    void setTransitionLabel(const QString &name, QGraphicsEllipseItem *from, QGraphicsEllipseItem *to, QGraphicsPathItem *pathItem, const QPainterPath &path);
 
     void handleDropEvent(QDropEvent *event);
     bool eventFilter(QObject *obj, QEvent *event) override;
@@ -81,7 +74,7 @@ public:
     ~MainWindow();
 
 private slots:
-    void updateTransitions(); // Update transitions when states move
+    void updateTransitions();
 
 private:
     Ui::MainWindow *ui;
