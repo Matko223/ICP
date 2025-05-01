@@ -1,31 +1,32 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include "startWindow.h"
-#include <QMainWindow>
-#include <QGraphicsScene>
-#include <QGraphicsView>
+#include <QDateTime>
+#include <QDockWidget>
+#include <QDrag>
 #include <QDragEnterEvent>
 #include <QDragMoveEvent>
 #include <QDropEvent>
+#include <QFileDialog>
 #include <QGraphicsEllipseItem>
 #include <QGraphicsPathItem>
+#include <QGraphicsPolygonItem>
+#include <QGraphicsScene>
 #include <QGraphicsTextItem>
-#include <QMap>
-#include <QDockWidget>
-#include <QMimeData>
-#include <QInputDialog>
-#include <QMessageBox>
-#include <QVBoxLayout>
+#include <QGraphicsView>
 #include <QHBoxLayout>
+#include <QInputDialog>
 #include <QLabel>
+#include <QMainWindow>
+#include <QMap>
+#include <QMessageBox>
+#include <QMimeData>
 #include <QPushButton>
-#include <QtMath>
-#include <QFileDialog>
-#include <QTextEdit>
 #include <QRadioButton>
-#include <QDrag>
-#include <QDateTime>
+#include <QTextEdit>
+#include <QVBoxLayout>
+#include <QtMath>
+#include "startWindow.h"
 
 #define PI 3.14159
 
@@ -34,45 +35,60 @@ struct Transition
     QGraphicsEllipseItem *from_state;
     QGraphicsEllipseItem *to_state;
     QGraphicsPathItem *path;
+    QGraphicsPolygonItem *arrow; // Store arrow for updates
+    QGraphicsTextItem *label;   // Store label for updates
 };
 
 QT_BEGIN_NAMESPACE
-namespace Ui { class MainWindow; }
+namespace Ui {
+class MainWindow;
+}
 QT_END_NAMESPACE
 
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
-    public:
-        explicit MainWindow(const QString &name, const QString &description, QWidget *parent = nullptr);
-        void logText(QString str);
+public:
+    explicit MainWindow(const QString &name, const QString &description, QWidget *parent = nullptr);
+    void logText(QString str);
 
-        void initializeControlWidget();
-        void startSimulation();
-        void pauseSimulation();
-        void cancelSimulation();
-        void resetSimulation();
+    void initializeControlWidget();
+    void startSimulation();
+    void pauseSimulation();
+    void cancelSimulation();
+    void resetSimulation();
 
-        QGraphicsEllipseItem *createState(QString type, QPointF position);
+    QGraphicsEllipseItem *createState(QString type, QPointF position);
 
-        bool createTransitionDialog(QString &transitionName, QString &fromState, QString &toState);
-        QPainterPath createTransitionPath(QGraphicsEllipseItem *from, QGraphicsEllipseItem *to, QPointF &arrowPos, double &angle);
-        void drawArrow(const QPointF &arrowPos, double angle);
-        void setTransitionLabel(const QString &name, QGraphicsEllipseItem *from, QGraphicsEllipseItem *to, QGraphicsPathItem *pathItem, const QPainterPath &path);
+    bool createTransitionDialog(QString &transitionName, QString &fromState, QString &toState);
+    QPainterPath createTransitionPath(QGraphicsEllipseItem *from,
+                                      QGraphicsEllipseItem *to,
+                                      QPointF &arrowPos,
+                                      double &angle);
+    void drawArrow(const QPointF &arrowPos, double angle);
+    QGraphicsPolygonItem *createArrow(const QPointF &arrowPos, double angle); // Added declaration
+    void setTransitionLabel(const QString &name,
+                            QGraphicsEllipseItem *from,
+                            QGraphicsEllipseItem *to,
+                            QGraphicsPathItem *pathItem,
+                            const QPainterPath &path);
 
-        void handleDropEvent(QDropEvent *event);
-        bool eventFilter(QObject *obj, QEvent *event) override;
-        void initDrag();
+    void handleDropEvent(QDropEvent *event);
+    bool eventFilter(QObject *obj, QEvent *event) override;
+    void initDrag();
 
-        ~MainWindow();
+    ~MainWindow();
 
-    private:
-        Ui::MainWindow *ui;
-        QGraphicsScene *scene;
-        QMap<QString, Transition> transitionItems;
-        QMap<QString, QGraphicsEllipseItem*> stateItems;
-        int logCounter = 1;
+private slots:
+    void updateTransitions(); // Update transitions when states move
+
+private:
+    Ui::MainWindow *ui;
+    QGraphicsScene *scene;
+    QMap<QString, Transition> transitionItems;
+    QMap<QString, QGraphicsEllipseItem *> stateItems;
+    int logCounter = 1;
 };
 
 #endif // MAINWINDOW_H

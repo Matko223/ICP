@@ -29,8 +29,10 @@ MainWindow::MainWindow(const QString &name, const QString &description, QWidget 
     ui->graphicsView->setScene(scene);
     ui->graphicsView->setSceneRect(0, 0, 500, 500);
 
-    ui->nameDesc->setText(name + " - "
-                          + description); // add automaton name and description from startWindow
+    // Connect scene changed signal to update transitions when states move
+    connect(scene, &QGraphicsScene::changed, this, &MainWindow::updateTransitions);
+
+    ui->nameDesc->setText(name + " - " + description); // add automaton name and description from startWindow
 
     initializeControlWidget(); // connect control buttons
     logText("Automaton " + name + " initialized");
@@ -111,7 +113,7 @@ QGraphicsEllipseItem *MainWindow::createState(QString type, QPointF position)
 {
     QGraphicsEllipseItem *state = new QGraphicsEllipseItem(0, 0, 50, 50);
     state->setPos(position);
-    state->setFlag(QGraphicsItem::ItemIsMovable, false); // sticky for now
+    state->setFlag(QGraphicsItem::ItemIsMovable, true); // Make states movable
     state->setFlag(QGraphicsItem::ItemIsSelectable, true);
 
     if (type == "Final state") {
@@ -135,9 +137,7 @@ QGraphicsEllipseItem *MainWindow::createState(QString type, QPointF position)
 // transition dialog
 // user enters transition name, from state and to state
 // confirm with ok button, cancel with cancel button
-bool MainWindow::createTransitionDialog(QString &transitionName,
-                                        QString &fromState,
-                                        QString &toState)
+bool MainWindow::createTransitionDialog(QString &transitionName, QString &fromState, QString &toState)
 {
     QDialog dialog(this);
     dialog.setWindowTitle("Create transition");
@@ -189,10 +189,7 @@ bool MainWindow::createTransitionDialog(QString &transitionName,
 
 // create a path between 2 states
 // set an arrow position and rotation angle based on the path
-QPainterPath MainWindow::createTransitionPath(QGraphicsEllipseItem *fromState,
-                                              QGraphicsEllipseItem *toState,
-                                              QPointF &arrowPos,
-                                              double &angle)
+QPainterPath MainWindow::createTransitionPath(QGraphicsEllipseItem *fromState, QGraphicsEllipseItem *toState, QPointF &arrowPos, double &angle)
 {
     // get a center of each state
     QPointF point1 = fromState->sceneBoundingRect().center();
@@ -233,16 +230,13 @@ QPainterPath MainWindow::createTransitionPath(QGraphicsEllipseItem *fromState,
         QPointF control2 = endPoint + QPointF(offset, -offset * 1.5);
 
         path.moveTo(startPoint); // start drawing from startPoint
-        path.cubicTo(control1,
-                     control2,
-                     endPoint); // draw a cubic curve from startPoint to endPoint through 2 control points
+        path.cubicTo(control1, control2, endPoint); // draw a cubic curve from startPoint to endPoint through 2 control points
 
         arrowPos = endPoint; // arrow is at the end of the curve
     }
     // normal transition
     else {
-        QPointF control1(point1.x(),
-                         (point1.y() + point2.y()) / 2); // helper point for curve construction
+        QPointF control1(point1.x(), (point1.y() + point2.y()) / 2); // helper point for curve construction
 
         path.quadTo(control1, point2); // draw a quadratic curve
         arrowPos = point2; // arrow is at the end of the curve (point 2 which is "to state")
@@ -263,22 +257,28 @@ void MainWindow::drawArrow(const QPointF &arrowPos, double angle)
 
     QPolygonF arrow;
     arrow << arrowPos << point1 << point2;
-    scene->addPolygon(arrow,
-                      QPen(Qt::black),
-                      QBrush(Qt::black)); // draw an arrow in the direction of angle
+    scene->addPolygon(arrow, QPen(Qt::black), QBrush(Qt::black)); // draw an arrow in the direction of angle
 }
 
-void MainWindow::setTransitionLabel(const QString &transitionName,
-                                    QGraphicsEllipseItem *from,
-                                    QGraphicsEllipseItem *to,
-                                    QGraphicsPathItem *transition,
-                                    const QPainterPath &path)
+// Create and return arrow for storage in Transition
+QGraphicsPolygonItem *MainWindow::createArrow(const QPointF &arrowPos, double angle)
 {
-    Transition t = {from, to, transition};
-    transitionItems.insert(transitionName, t); // save transition name to map
+    qreal size = 10.0;
+    QPointF point1 = arrowPos - QPointF(qCos(angle + PI / 6) * size, qSin(angle + PI / 6) * size);
+    QPointF point2 = arrowPos - QPointF(qCos(angle - PI / 6) * size, qSin(angle - PI / 6) * size);
+    QPolygonF arrow;
+    arrow << arrowPos << point1 << point2;
+    return scene->addPolygon(arrow, QPen(Qt::black), QBrush(Qt::black));
+}
 
-    QGraphicsTextItem *label = scene->addText(transitionName);
-    label->setDefaultTextColor(Qt::black);
+void MainWindow::setTransitionLabel(const QString &transitionName, QGraphicsEllipseItem *from, QGraphicsEllipseItem *to, QGraphicsPathItem *transition, const QPainterPath &path)
+{
+    Transition t;
+    t.from_state = from;
+    t.to_state = to;
+    t.path = transition;
+    t.label = scene->addText(transitionName);
+    t.label->setDefaultTextColor(Qt::black);
 
     // selfloop state transition
     if (from == to) {
@@ -287,9 +287,7 @@ void MainWindow::setTransitionLabel(const QString &transitionName,
         QPointF top = point1 + QPointF(0, -radius); // get the top center point
         qreal offset = 55;                          // distance from the top center for the label
 
-        label->setPos(top.x() - label->boundingRect().width() / 2,
-                      top.y() - offset
-                          - label->boundingRect().height() / 2); // set the label position
+        t.label->setPos(top.x() - t.label->boundingRect().width() / 2, top.y() - offset - t.label->boundingRect().height() / 2); // set the label position
     }
     // normal transition
     else {
@@ -298,8 +296,50 @@ void MainWindow::setTransitionLabel(const QString &transitionName,
         QPointF offset(-qSin(angle) * 10.0, -qCos(angle) * 10.0);
         QPointF pos = center + offset;
 
-        label->setPos(pos.x() - label->boundingRect().width() / 2,
-                      pos.y() - label->boundingRect().height() / 2); // set the label position
+        t.label->setPos(pos.x() - t.label->boundingRect().width() / 2, pos.y() - t.label->boundingRect().height() / 2); // set the label position
+    }
+
+    transitionItems.insert(transitionName, t); // save transition to map
+}
+
+// Update all transitions when a state is moved
+void MainWindow::updateTransitions()
+{
+    for (auto it = transitionItems.begin(); it != transitionItems.end(); ++it) {
+        Transition &t = it.value();
+        QString transitionName = it.key();
+
+        // Remove old path, arrow, and label
+        scene->removeItem(t.path);
+        scene->removeItem(t.arrow);
+        scene->removeItem(t.label);
+        delete t.path;
+        delete t.arrow;
+        delete t.label;
+
+        // Recalculate path, arrow, and label
+        QPointF arrowPos;
+        double angle = 0.0;
+        QPainterPath path = createTransitionPath(t.from_state, t.to_state, arrowPos, angle);
+        t.path = scene->addPath(path, QPen(Qt::black));
+        t.arrow = createArrow(arrowPos, angle);
+        t.label = scene->addText(transitionName);
+        t.label->setDefaultTextColor(Qt::black);
+
+        // Update label position
+        if (t.from_state == t.to_state) {
+            QPointF point1 = t.from_state->sceneBoundingRect().center();
+            qreal radius = t.from_state->rect().width() / 2;
+            QPointF top = point1 + QPointF(0, -radius);
+            qreal offset = 55;
+            t.label->setPos(top.x() - t.label->boundingRect().width() / 2, top.y() - offset - t.label->boundingRect().height() / 2);
+        } else {
+            QPointF center = path.pointAtPercent(0.5);
+            qreal angle = qDegreesToRadians(path.angleAtPercent(0.5));
+            QPointF offset(-qSin(angle) * 10.0, -qCos(angle) * 10.0);
+            QPointF pos = center + offset;
+            t.label->setPos(pos.x() - t.label->boundingRect().width() / 2, pos.y() - t.label->boundingRect().height() / 2);
+        }
     }
 }
 
@@ -319,12 +359,7 @@ void MainWindow::handleDropEvent(QDropEvent *event)
         QString stateName;
         while (true) {
             // show and input dialog and ask for name of the state
-            stateName = QInputDialog::getText(this,
-                                              "New state",
-                                              "Enter state name",
-                                              QLineEdit::Normal,
-                                              "",
-                                              &ok);
+            stateName = QInputDialog::getText(this, "New state", "Enter state name", QLineEdit::Normal, "", &ok);
 
             // if the name already exists -> error and ask again
             if (stateItems.contains(stateName)) {
@@ -375,9 +410,30 @@ void MainWindow::handleDropEvent(QDropEvent *event)
 
             QGraphicsPathItem *transition = scene->addPath(path, QPen(Qt::black));
 
-            drawArrow(arrowPos, angle);                                     // draw arrow
-            setTransitionLabel(transitionName, from, to, transition, path); // set label
+            Transition t;
+            t.from_state = from;
+            t.to_state = to;
+            t.path = transition;
+            t.arrow = createArrow(arrowPos, angle);
+            t.label = scene->addText(transitionName);
+            t.label->setDefaultTextColor(Qt::black);
 
+            // Set label position
+            if (from == to) {
+                QPointF point1 = from->sceneBoundingRect().center();
+                qreal radius = from->rect().width() / 2;
+                QPointF top = point1 + QPointF(0, -radius);
+                qreal offset = 55;
+                t.label->setPos(top.x() - t.label->boundingRect().width() / 2, top.y() - offset - t.label->boundingRect().height() / 2);
+            } else {
+                QPointF center = path.pointAtPercent(0.5);
+                qreal angle = qDegreesToRadians(path.angleAtPercent(0.5));
+                QPointF offset(-qSin(angle) * 10.0, -qCos(angle) * 10.0);
+                QPointF pos = center + offset;
+                t.label->setPos(pos.x() - t.label->boundingRect().width() / 2, pos.y() - t.label->boundingRect().height() / 2);
+            }
+
+            transitionItems.insert(transitionName, t); // save transition to map
             logText("Added transition from " + fromState + " to " + toState);
         }
     }
