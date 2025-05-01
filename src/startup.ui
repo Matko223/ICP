@@ -44,7 +44,6 @@
         <property name="font">
          <font>
           <pointsize>16</pointsize>
-          <weight>75</weight>
           <bold>true</bold>
          </font>
         </property>
@@ -52,7 +51,7 @@
          <string>Automaton name</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignmentFlag::AlignCenter</set>
         </property>
        </widget>
       </item>
@@ -77,7 +76,6 @@
         <property name="font">
          <font>
           <pointsize>12</pointsize>
-          <weight>75</weight>
           <bold>true</bold>
          </font>
         </property>
@@ -85,7 +83,7 @@
          <string>Automaton description</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignmentFlag::AlignCenter</set>
         </property>
        </widget>
       </item>
@@ -112,13 +110,18 @@
           <property name="font">
            <font>
             <pointsize>12</pointsize>
-            <weight>75</weight>
             <bold>true</bold>
            </font>
           </property>
           <property name="styleSheet">
-           <string notr="true">background-color: rgb(0, 0, 0);
-color: rgb(255, 255, 255);</string>
+           <string notr="true">QPushButton {
+    background-color: rgb(0, 0, 0);
+    color: rgb(255, 255, 255);
+}
+QPushButton:hover {
+    background-color: rgb(105, 105, 105);
+    color: rgb(0, 0, 0);
+}</string>
           </property>
           <property name="text">
            <string>Create</string>
@@ -136,13 +139,18 @@ color: rgb(255, 255, 255);</string>
           <property name="font">
            <font>
             <pointsize>12</pointsize>
-            <weight>75</weight>
             <bold>true</bold>
            </font>
           </property>
           <property name="styleSheet">
-           <string notr="true">background-color: rgb(0, 0, 0);
-color: rgb(255, 255, 255);</string>
+           <string notr="true">QPushButton {
+    background-color: rgb(0, 0, 0);
+    color: rgb(255, 255, 255);
+}
+QPushButton:hover {
+    background-color: rgb(105, 105, 105);
+    color: rgb(0, 0, 0);
+}</string>
           </property>
           <property name="text">
            <string>Load</string>

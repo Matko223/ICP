@@ -96,7 +96,7 @@
          <string>Input</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignmentFlag::AlignCenter</set>
         </property>
        </widget>
       </item>
@@ -127,7 +127,7 @@
          <string>Output</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignmentFlag::AlignCenter</set>
         </property>
        </widget>
       </item>
@@ -273,8 +273,14 @@ image: url(:/cancelButton.png);</string>
       </size>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(0, 0, 0);
-color: rgb(255, 255, 255);</string>
+      <string notr="true">QPushButton {
+    background-color: rgb(0, 0, 0);
+    color: rgb(255, 255, 255);
+}
+QPushButton:hover {
+    background-color: rgb(105, 105, 105);
+    color: rgb(0, 0, 0);
+}</string>
      </property>
      <property name="text">
       <string>Generate text file</string>
@@ -313,7 +319,7 @@ color: rgb(255, 255, 255);</string>
      </rect>
     </property>
     <property name="frameShape">
-     <enum>QFrame::Box</enum>
+     <enum>QFrame::Shape::Box</enum>
     </property>
    </widget>
    <widget class="QLabel" name="logText">
@@ -331,16 +337,16 @@ color: rgb(255, 255, 255);</string>
      </font>
     </property>
     <property name="frameShape">
-     <enum>QFrame::Box</enum>
+     <enum>QFrame::Shape::Box</enum>
     </property>
     <property name="frameShadow">
-     <enum>QFrame::Plain</enum>
+     <enum>QFrame::Shadow::Plain</enum>
     </property>
     <property name="text">
      <string>Description</string>
     </property>
     <property name="alignment">
-     <set>Qt::AlignCenter</set>
+     <set>Qt::AlignmentFlag::AlignCenter</set>
     </property>
    </widget>
    <widget class="QLabel" name="nameDesc">
@@ -355,7 +361,6 @@ color: rgb(255, 255, 255);</string>
     <property name="font">
      <font>
       <pointsize>12</pointsize>
-      <weight>75</weight>
       <bold>true</bold>
      </font>
     </property>
