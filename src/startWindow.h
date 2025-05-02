@@ -2,6 +2,17 @@
 #define STARTWINDOW_H
 
 #include <QMainWindow>
+#include <QIODevice>
+#include <QJsonObject>
+#include <QJsonParseError>
+#include <QDebug>
+
+// structure representing automaton
+// TODO add input, output, states, transitions, variables
+struct Automaton {
+    QString name;
+    QString description;
+};
 
 namespace Ui {
 class startWindow;
@@ -19,6 +30,8 @@ public:
 private:
     void createButton();
     void loadButton();
+    QString readFile();
+    void jsonParser(const QJsonObject &root);
     Ui::startWindow *ui;
 };
 
