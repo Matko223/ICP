@@ -8,7 +8,6 @@
 #include <QDragMoveEvent>
 #include <QDropEvent>
 #include <QFileDialog>
-#include <QGraphicsEllipseItem>
 #include <QGraphicsPathItem>
 #include <QGraphicsPolygonItem>
 #include <QGraphicsScene>
@@ -27,13 +26,14 @@
 #include <QVBoxLayout>
 #include <QtMath>
 #include "startWindow.h"
+#include "stateitem.h"
 
 #define PI 3.14159
 
 struct Transition
 {
-    QGraphicsEllipseItem *from_state;
-    QGraphicsEllipseItem *to_state;
+    StateItem *from_state; // Changed to StateItem
+    StateItem *to_state;   // Changed to StateItem
     QGraphicsPathItem *path;
     QGraphicsPolygonItem *arrow;
     QGraphicsTextItem *label;
@@ -59,20 +59,20 @@ public:
     void cancelSimulation();
     void resetSimulation();
 
-    QGraphicsEllipseItem *createState(QString type, QPointF position);
+    StateItem *createState(QString type, QPointF position); // Changed to StateItem
 
     bool createTransitionDialog(QString &transitionName, QString &fromState, QString &toState);
-    QPainterPath createTransitionPath(QGraphicsEllipseItem *from, QGraphicsEllipseItem *to, QPointF &arrowPos, double &angle);
+    QPainterPath createTransitionPath(StateItem *from, StateItem *to, QPointF &arrowPos, double &angle); // Changed to StateItem
     void drawArrow(const QPointF &arrowPos, double angle);
     QGraphicsPolygonItem *createArrow(const QPointF &arrowPos, double angle);
-    void setTransitionLabel(const QString &name, QGraphicsEllipseItem *from, QGraphicsEllipseItem *to, QGraphicsPathItem *pathItem, const QPainterPath &path);
+    void setTransitionLabel(const QString &name, StateItem *from, StateItem *to, QGraphicsPathItem *pathItem, const QPainterPath &path); // Changed to StateItem
 
     void handleDropEvent(QDropEvent *event);
     bool eventFilter(QObject *obj, QEvent *event) override;
     void initDrag();
 
-    void highlightState(QGraphicsEllipseItem *state);
-    void clearHighlight(QGraphicsEllipseItem *state);
+    void highlightState(StateItem *state); // Changed to StateItem
+    void clearHighlight(StateItem *state); // Changed to StateItem
 
     ~MainWindow();
 
@@ -84,9 +84,9 @@ private:
     Ui::MainWindow *ui;
     QGraphicsScene *scene;
     QMap<QString, Transition> transitionItems;
-    QMap<QString, QGraphicsEllipseItem *> stateItems;
+    QMap<QString, StateItem *> stateItems; // Changed to StateItem
     int logCounter = 1;
-    QGraphicsEllipseItem *currentState = nullptr;
+    StateItem *currentState = nullptr; // Changed to StateItem
     QString lastInput;
 };
 

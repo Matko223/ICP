@@ -24,8 +24,11 @@ MainWindow::MainWindow(const QString &name, const QString &description, QWidget 
 
     // Initialize scene
     scene = new QGraphicsScene(this);
+    scene->setSceneRect(0, 0, 1000, 1000);
     ui->graphicsView->setScene(scene);
     ui->graphicsView->setSceneRect(0, 0, 1000, 1000);
+    ui->graphicsView->resetTransform();
+    ui->graphicsView->setMinimumSize(500, 500);
 
     // Enable scrollbars
     ui->graphicsView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
@@ -156,28 +159,31 @@ void MainWindow::cancelSimulation()
 
 // create new state and add it to the scene
 // distinguish between normal and final state
-QGraphicsEllipseItem *MainWindow::createState(QString type, QPointF position)
+// Create state using StateItem
+StateItem *MainWindow::createState(QString type, QPointF position)
 {
-    QGraphicsEllipseItem *state = new QGraphicsEllipseItem(0, 0, 50, 50);
+    StateItem *state = new StateItem(0, 0, 50, 50);
     state->setPos(position);
-    state->setFlag(QGraphicsItem::ItemIsMovable, true);
-    state->setFlag(QGraphicsItem::ItemIsSelectable, true);
 
     if (type == "Final state") {
         state->setPen(QPen(Qt::black));
         state->setBrush(Qt::transparent);
 
-        // final state has 2 circles
-        QGraphicsEllipseItem *innerCircle = new QGraphicsEllipseItem(5, 5, 40, 40, state);
+        // Final state has 2 circles
+        StateItem *innerCircle = new StateItem(5, 5, 40, 40, state);
         innerCircle->setPen(QPen(Qt::black));
         innerCircle->setBrush(Qt::transparent);
-    }
-    // normal state
-    else {
+        // Disable movability, selectability, and event handling for the inner circle
+        innerCircle->setFlag(QGraphicsItem::ItemIsMovable, false);
+        innerCircle->setFlag(QGraphicsItem::ItemIsSelectable, false);
+        innerCircle->setAcceptHoverEvents(false);
+        innerCircle->setAcceptedMouseButtons(Qt::NoButton);
+    } else {
         state->setPen(QPen(Qt::black));
         state->setBrush(Qt::transparent);
     }
-    scene->addItem(state); // add state to the scene
+
+    scene->addItem(state);
     return state;
 }
 
@@ -236,22 +242,15 @@ bool MainWindow::createTransitionDialog(QString &transitionName, QString &fromSt
 
 // create a path between 2 states
 // set an arrow position and rotation angle based on the path
-QPainterPath MainWindow::createTransitionPath(QGraphicsEllipseItem *fromState, QGraphicsEllipseItem *toState, QPointF &arrowPos, double &angle)
+QPainterPath MainWindow::createTransitionPath(StateItem *fromState, StateItem *toState, QPointF &arrowPos, double &angle)
 {
-    // get a center of each state
     QPointF point1 = fromState->sceneBoundingRect().center();
     QPointF point2 = toState->sceneBoundingRect().center();
 
-    // draw a line between states
     QLineF line(point1, point2);
-
-    // state is a circle -> radius is width / 2
     qreal radius = fromState->rect().width() / 2;
 
-    // transition starts and ends on the edges of state
     if (line.length() > 0) {
-        // move a point from center to the edge using radius
-        // update points
         line.setLength(line.length() - radius);
         point2 = line.p2();
         line.setLength(radius);
@@ -260,34 +259,24 @@ QPainterPath MainWindow::createTransitionPath(QGraphicsEllipseItem *fromState, Q
 
     QPainterPath path(point1);
 
-    // selfloop state transition
-    // draw a bezier curve above state
     if (fromState == toState) {
-        qreal offset = 40.0;   // offset from the state edge
-        qreal distance = 20.0; // distance between start point and end point
-
-        QPointF top = point1 + QPointF(0, -radius); // point at the top of the state above center
-
-        // start and end of the curve
+        qreal offset = 40.0;
+        qreal distance = 20.0;
+        QPointF top = point1 + QPointF(0, -radius);
         QPointF startPoint = top + QPointF(-distance / 2, 0);
         QPointF endPoint = top + QPointF(distance / 2, 0);
-
-        // helper points for bezier curve construction (set its height and shape)
         QPointF control1 = startPoint + QPointF(-offset, -offset * 1.5);
         QPointF control2 = endPoint + QPointF(offset, -offset * 1.5);
 
-        path.moveTo(startPoint); // start drawing from startPoint
-        path.cubicTo(control1, control2, endPoint); // draw a cubic curve from startPoint to endPoint through 2 control points
-
-        arrowPos = endPoint; // arrow is at the end of the curve
+        path.moveTo(startPoint);
+        path.cubicTo(control1, control2, endPoint);
+        arrowPos = endPoint;
+    } else {
+        QPointF control1(point1.x(), (point1.y() + point2.y()) / 2);
+        path.quadTo(control1, point2);
+        arrowPos = point2;
     }
-    // normal transition
-    else {
-        QPointF control1(point1.x(), (point1.y() + point2.y()) / 2); // helper point for curve construction
 
-        path.quadTo(control1, point2); // draw a quadratic curve
-        arrowPos = point2; // arrow is at the end of the curve (point 2 which is "to state")
-    }
     angle = qDegreesToRadians(-path.angleAtPercent(1.0));
     return path;
 }
@@ -315,7 +304,7 @@ QGraphicsPolygonItem *MainWindow::createArrow(const QPointF &arrowPos, double an
     return scene->addPolygon(arrow, QPen(Qt::black), QBrush(Qt::black));
 }
 
-void MainWindow::setTransitionLabel(const QString &transitionName, QGraphicsEllipseItem *from, QGraphicsEllipseItem *to, QGraphicsPathItem *transition, const QPainterPath &path)
+void MainWindow::setTransitionLabel(const QString &transitionName, StateItem *from, StateItem *to, QGraphicsPathItem *transition, const QPainterPath &path)
 {
     Transition t;
     t.from_state = from;
@@ -324,26 +313,23 @@ void MainWindow::setTransitionLabel(const QString &transitionName, QGraphicsElli
     t.label = scene->addText(transitionName);
     t.label->setDefaultTextColor(Qt::black);
 
-    // selfloop state transition
     if (from == to) {
-        QPointF point1 = from->sceneBoundingRect().center(); // get the center
+        QPointF point1 = from->sceneBoundingRect().center();
         qreal radius = from->rect().width() / 2;
-        QPointF top = point1 + QPointF(0, -radius); // get the top center point
-        qreal offset = 55;                          // distance from the top center for the label
+        QPointF top = point1 + QPointF(0, -radius);
+        qreal offset = 55;
 
-        t.label->setPos(top.x() - t.label->boundingRect().width() / 2, top.y() - offset - t.label->boundingRect().height() / 2); // set the label position
-    }
-    // normal transition
-    else {
-        QPointF center = path.pointAtPercent(0.5);                 // get the center of the path
-        qreal angle = qDegreesToRadians(path.angleAtPercent(0.5)); // angle of tanget in the center
+        t.label->setPos(top.x() - t.label->boundingRect().width() / 2, top.y() - offset - t.label->boundingRect().height() / 2);
+    } else {
+        QPointF center = path.pointAtPercent(0.5);
+        qreal angle = qDegreesToRadians(path.angleAtPercent(0.5));
         QPointF offset(-qSin(angle) * 10.0, -qCos(angle) * 10.0);
         QPointF pos = center + offset;
 
-        t.label->setPos(pos.x() - t.label->boundingRect().width() / 2, pos.y() - t.label->boundingRect().height() / 2); // set the label position
+        t.label->setPos(pos.x() - t.label->boundingRect().width() / 2, pos.y() - t.label->boundingRect().height() / 2);
     }
 
-    transitionItems.insert(transitionName, t); // save transition to map
+    transitionItems.insert(transitionName, t);
 }
 
 // Update all transitions when a state is moved
@@ -353,7 +339,6 @@ void MainWindow::updateTransitions()
         Transition &t = it.value();
         QString transitionName = it.key();
 
-        // Remove old path, arrow, and label
         scene->removeItem(t.path);
         scene->removeItem(t.arrow);
         scene->removeItem(t.label);
@@ -361,7 +346,6 @@ void MainWindow::updateTransitions()
         delete t.arrow;
         delete t.label;
 
-        // Recalculate path, arrow, and label
         QPointF arrowPos;
         double angle = 0.0;
         QPainterPath path = createTransitionPath(t.from_state, t.to_state, arrowPos, angle);
@@ -370,7 +354,6 @@ void MainWindow::updateTransitions()
         t.label = scene->addText(transitionName);
         t.label->setDefaultTextColor(Qt::black);
 
-        // Update label position
         if (t.from_state == t.to_state) {
             QPointF point1 = t.from_state->sceneBoundingRect().center();
             qreal radius = t.from_state->rect().width() / 2;
@@ -391,32 +374,24 @@ void MainWindow::updateTransitions()
 // create states and transitions between states
 void MainWindow::handleDropEvent(QDropEvent *event)
 {
-    // get the type and position of an item
     QString type = event->mimeData()->text();
     QPointF position = ui->graphicsView->mapToScene(event->pos());
 
     if (type == "State" || type == "Final state") {
-        // create a state
-        QGraphicsEllipseItem *state = createState(type, position);
+        StateItem *state = createState(type, position);
 
-        bool ok; // for tracking ok or cancel button
+        bool ok;
         QString stateName;
         while (true) {
-            // show and input dialog and ask for name of the state
             stateName = QInputDialog::getText(this, "New state", "Enter state name", QLineEdit::Normal, "", &ok);
-
-            // if the name already exists -> error and ask again
             if (stateItems.contains(stateName)) {
                 QMessageBox::warning(this, "Error", "Duplicate! Enter new name", QMessageBox::Ok);
                 continue;
             }
-
-            // cancel button deletes an item
             if (!ok) {
                 delete state;
                 return;
             }
-
             if (stateName.isEmpty()) {
                 QMessageBox::warning(this, "Error", "Name cannot be empty");
                 continue;
@@ -424,18 +399,15 @@ void MainWindow::handleDropEvent(QDropEvent *event)
             break;
         }
 
-        // text label of the state
         QGraphicsTextItem *label = new QGraphicsTextItem(stateName, state);
         label->setDefaultTextColor(Qt::black);
-
-        QRectF rect = state->rect(); // get the state dimensions inside
+        QRectF rect = state->rect();
         QRectF labelRect = label->boundingRect();
-        label->setPos(rect.width() / 2 - labelRect.width() / 2, rect.height() / 2 - labelRect.height() / 2); // align to center of the state
+        label->setPos(rect.width() / 2 - labelRect.width() / 2, rect.height() / 2 - labelRect.height() / 2);
 
-        stateItems[stateName] = state; // save the state to the map
+        stateItems[stateName] = state;
         logText("Added state " + stateName);
 
-        // Set the first state as the initial state if none is set
         if (!currentState && stateItems.size() == 1) {
             currentState = state;
             highlightState(currentState);
@@ -443,21 +415,18 @@ void MainWindow::handleDropEvent(QDropEvent *event)
         }
     } else if (type == "Transition") {
         QString transitionName, fromState, toState;
-
         if (createTransitionDialog(transitionName, fromState, toState)) {
             if (!stateItems.contains(fromState) || !stateItems.contains(toState)) {
                 QMessageBox::warning(this, "Error", "State not found.");
                 return;
             }
 
-            QGraphicsEllipseItem *from = stateItems[fromState];
-            QGraphicsEllipseItem *to = stateItems[toState];
+            StateItem *from = stateItems[fromState];
+            StateItem *to = stateItems[toState];
 
             QPointF arrowPos;
             double angle = 0.0;
-
             QPainterPath path = createTransitionPath(from, to, arrowPos, angle);
-
             QGraphicsPathItem *transition = scene->addPath(path, QPen(Qt::black));
 
             Transition t;
@@ -468,7 +437,6 @@ void MainWindow::handleDropEvent(QDropEvent *event)
             t.label = scene->addText(transitionName);
             t.label->setDefaultTextColor(Qt::black);
 
-            // Set label position
             if (from == to) {
                 QPointF point1 = from->sceneBoundingRect().center();
                 qreal radius = from->rect().width() / 2;
@@ -530,7 +498,7 @@ void MainWindow::initDrag()
 }
 
 // Highlight a state
-void MainWindow::highlightState(QGraphicsEllipseItem *state)
+void MainWindow::highlightState(StateItem *state)
 {
     if (state) {
         state->setBrush(QBrush(Qt::yellow));
@@ -538,8 +506,7 @@ void MainWindow::highlightState(QGraphicsEllipseItem *state)
     }
 }
 
-// Clear highlight from a state
-void MainWindow::clearHighlight(QGraphicsEllipseItem *state)
+void MainWindow::clearHighlight(StateItem *state)
 {
     if (state) {
         state->setBrush(Qt::transparent);
