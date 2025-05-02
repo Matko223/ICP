@@ -1,11 +1,10 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include <QDebug>
 
-// TODO: prechod aaa a->a a potom aaa a->b chyba
+// TODO: prechod aaa a->a a potom aaa a->b chyba; simulaciu
 
-MainWindow::MainWindow(const QString &name, const QString &description, QWidget *parent)
-    : QMainWindow(parent)
-    , ui(new Ui::MainWindow)
+MainWindow::MainWindow(const QString &name, const QString &description, QWidget *parent): QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
 
@@ -32,16 +31,29 @@ MainWindow::MainWindow(const QString &name, const QString &description, QWidget 
     ui->graphicsView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     ui->graphicsView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
 
-    // Ensure the view is scrollable by setting alignment
     ui->graphicsView->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-
-    // Connect scene changed signal to update transitions when states move
     connect(scene, &QGraphicsScene::changed, this, &MainWindow::updateTransitions);
-
     ui->nameDesc->setText(name + " - " + description);
 
     initializeControlWidget();
     logText("Automaton " + name + " initialized");
+
+    // input handling
+    connect(ui->inEdit, &QLineEdit::returnPressed, this, &MainWindow::handleInput);
+}
+
+// New slot to handle input
+void MainWindow::handleInput()
+{
+    QString input = ui->inEdit->text().trimmed();
+    if (input.isEmpty()) {
+        QMessageBox::warning(this, "Error", "Input cannot be empty.");
+        return;
+    }
+
+    lastInput = input;
+    logText("Input received: " + input);
+    ui->inEdit->clear();
 }
 
 // each action is logged with number, date and description
@@ -62,18 +74,47 @@ void MainWindow::initializeControlWidget()
 }
 
 // start simulation button handling
-void MainWindow::startSimulation() {}
+void MainWindow::startSimulation()
+{
+    if (stateItems.isEmpty()) {
+        QMessageBox::warning(this, "Error", "No states available to start simulation.");
+        return;
+    }
+
+    if (!currentState) {
+        currentState = stateItems.first();
+        highlightState(currentState);
+        logText("Simulation started with initial state: " + stateItems.key(currentState));
+    } else {
+        highlightState(currentState);
+        logText("Simulation resumed with current state: " + stateItems.key(currentState));
+    }
+
+    // TODO: DOKONOCIT SIMULACIU
+}
 
 // pause simulation button handling
-void MainWindow::pauseSimulation() {}
+void MainWindow::pauseSimulation()
+{
+    if (currentState) {
+        logText("Simulation paused at state: " + stateItems.key(currentState));
+    } else {
+        logText("Simulation paused (no current state)");
+    }
+}
 
 // reset simulation
 // clear scene
 void MainWindow::resetSimulation()
 {
+    if (currentState) {
+        clearHighlight(currentState);
+        currentState = nullptr;
+    }
     scene->clear();
     stateItems.clear();
     transitionItems.clear();
+    lastInput.clear(); // Clear lastInput on reset
     logText("Scene cleared");
 }
 
@@ -119,7 +160,7 @@ QGraphicsEllipseItem *MainWindow::createState(QString type, QPointF position)
 {
     QGraphicsEllipseItem *state = new QGraphicsEllipseItem(0, 0, 50, 50);
     state->setPos(position);
-    state->setFlag(QGraphicsItem::ItemIsMovable, true); // Make states movable
+    state->setFlag(QGraphicsItem::ItemIsMovable, true);
     state->setFlag(QGraphicsItem::ItemIsSelectable, true);
 
     if (type == "Final state") {
@@ -247,9 +288,6 @@ QPainterPath MainWindow::createTransitionPath(QGraphicsEllipseItem *fromState, Q
         path.quadTo(control1, point2); // draw a quadratic curve
         arrowPos = point2; // arrow is at the end of the curve (point 2 which is "to state")
     }
-    // get the angle of the tangent at the end of the path
-    // sin and cos function works with radians, so the conversion from deegres to radians is neccessary
-    // 1.0 represent the end of the path
     angle = qDegreesToRadians(-path.angleAtPercent(1.0));
     return path;
 }
@@ -392,11 +430,17 @@ void MainWindow::handleDropEvent(QDropEvent *event)
 
         QRectF rect = state->rect(); // get the state dimensions inside
         QRectF labelRect = label->boundingRect();
-        label->setPos(rect.width() / 2 - labelRect.width() / 2,
-                      rect.height() / 2 - labelRect.height() / 2); // align to center of the state
+        label->setPos(rect.width() / 2 - labelRect.width() / 2, rect.height() / 2 - labelRect.height() / 2); // align to center of the state
 
         stateItems[stateName] = state; // save the state to the map
         logText("Added state " + stateName);
+
+        // Set the first state as the initial state if none is set
+        if (!currentState && stateItems.size() == 1) {
+            currentState = state;
+            highlightState(currentState);
+            logText("Set initial state: " + stateName);
+        }
     } else if (type == "Transition") {
         QString transitionName, fromState, toState;
 
@@ -439,11 +483,11 @@ void MainWindow::handleDropEvent(QDropEvent *event)
                 t.label->setPos(pos.x() - t.label->boundingRect().width() / 2, pos.y() - t.label->boundingRect().height() / 2);
             }
 
-            transitionItems.insert(transitionName, t); // save transition to map
+            transitionItems.insert(transitionName, t);
             logText("Added transition from " + fromState + " to " + toState);
         }
     }
-    event->acceptProposedAction(); // drag&drop successful
+    event->acceptProposedAction();
 }
 
 // track events on graphicsView
@@ -471,21 +515,39 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
 // initalizes drag from list widget to scene
 void MainWindow::initDrag()
 {
-    QListWidgetItem *item = ui->listWidget->currentItem(); // find item in list widget
+    QListWidgetItem *item = ui->listWidget->currentItem();
     if (!item) {
         return;
     }
 
-    QMimeData *data = new QMimeData; // create mime object
-    data->setText(item->text());     // save the item into data object
+    QMimeData *data = new QMimeData;
+    data->setText(item->text());
 
-    QDrag *drag = new QDrag(ui->listWidget); // create drag object
-    drag->setMimeData(data);                 // add drag data into drag object
+    QDrag *drag = new QDrag(ui->listWidget);
+    drag->setMimeData(data);
 
-    drag->exec(Qt::CopyAction); // start drag as copy action
+    drag->exec(Qt::CopyAction);
 }
 
-// desctructor
+// Highlight a state
+void MainWindow::highlightState(QGraphicsEllipseItem *state)
+{
+    if (state) {
+        state->setBrush(QBrush(Qt::yellow));
+        state->update();
+    }
+}
+
+// Clear highlight from a state
+void MainWindow::clearHighlight(QGraphicsEllipseItem *state)
+{
+    if (state) {
+        state->setBrush(Qt::transparent);
+        state->update();
+    }
+}
+
+// destructor
 MainWindow::~MainWindow()
 {
     delete ui;

@@ -71,10 +71,14 @@ public:
     bool eventFilter(QObject *obj, QEvent *event) override;
     void initDrag();
 
+    void highlightState(QGraphicsEllipseItem *state);
+    void clearHighlight(QGraphicsEllipseItem *state);
+
     ~MainWindow();
 
 private slots:
     void updateTransitions();
+    void handleInput();
 
 private:
     Ui::MainWindow *ui;
@@ -82,6 +86,8 @@ private:
     QMap<QString, Transition> transitionItems;
     QMap<QString, QGraphicsEllipseItem *> stateItems;
     int logCounter = 1;
+    QGraphicsEllipseItem *currentState = nullptr;
+    QString lastInput;
 };
 
 #endif // MAINWINDOW_H

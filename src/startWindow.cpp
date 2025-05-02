@@ -1,8 +1,10 @@
 #include "startWindow.h"
-#include "ui_startup.h"
 #include "mainwindow.h"
+#include "ui_startup.h"
 
-StartupWindow::StartupWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::startWindow)
+StartupWindow::StartupWindow(QWidget *parent)
+    : QMainWindow(parent)
+    , ui(new Ui::startWindow)
 {
     ui->setupUi(this);
 
@@ -22,8 +24,7 @@ void StartupWindow::createButton()
     QString name = ui->name->text();
     QString description = ui->description->text();
 
-    if (name.isEmpty())
-    {
+    if (name.isEmpty()) {
         QMessageBox::warning(this, "Error", "Name cannot be empty");
         return;
     }
@@ -34,10 +35,7 @@ void StartupWindow::createButton()
 }
 
 // TODO load external text file and process
-void StartupWindow::loadButton()
-{
-
-}
+void StartupWindow::loadButton() {}
 
 // destructor
 StartupWindow::~StartupWindow()

@@ -3,8 +3,7 @@
 
 #include <QMainWindow>
 
-namespace Ui
-{
+namespace Ui {
 class startWindow;
 }
 
@@ -12,15 +11,15 @@ class StartupWindow : public QMainWindow
 {
     Q_OBJECT
 
-    public:
-        explicit StartupWindow (QWidget *parent = nullptr);
-        void initButtons();
-        ~StartupWindow();
+public:
+    explicit StartupWindow(QWidget *parent = nullptr);
+    void initButtons();
+    ~StartupWindow();
 
-    private:
-        void createButton();
-        void loadButton();
-        Ui::startWindow  *ui;
+private:
+    void createButton();
+    void loadButton();
+    Ui::startWindow *ui;
 };
 
 #endif // STARTWINDOW_H
