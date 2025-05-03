@@ -67,25 +67,89 @@ void StartupWindow::loadButton()
     jsonParser(root);
 }
 
+void StartupWindow::parseInputs(const QJsonObject &root, JsonAutomaton &automaton)
+{
+    QJsonArray input = root.value("Inputs").toArray();
+    for (const QJsonValue &value : input)
+    {
+        automaton.inputs.append(value.toString());
+    }
+}
+
+void StartupWindow::parseOutputs(const QJsonObject &root, JsonAutomaton &automaton)
+{
+    QJsonArray output = root.value("Outputs").toArray();
+    for (const QJsonValue &value : output)
+    {
+        automaton.outputs.append(value.toString());
+    }
+}
+
+void StartupWindow::parseVariables(const QJsonObject &root, JsonAutomaton &automaton)
+{
+    QJsonObject variable = root.value("Variables").toObject();
+    for (const QString &name : variable.keys())
+    {
+        QJsonObject content = variable[name].toObject();
+
+        JsonVariable var;
+        var.name = name;
+        var.type = content["type"].toString();
+        var.value = content["value"].toVariant();
+
+        automaton.variableList.append(var);
+    }
+}
+
+void StartupWindow::parseStates(const QJsonObject &root, JsonAutomaton &automaton)
+{
+    QJsonObject states = root.value("States").toObject();
+    for (const QString &name : states.keys())
+    {
+        QJsonObject content = states[name].toObject();
+
+        JsonState state;
+        state.name = name;
+        state.action  = content["action"].toString();
+        state.isInitial = content["initial"].toBool(false);
+        state.isFinal = content["final"].toBool(false);
+
+        automaton.stateList.append(state);
+    }
+}
+
+void StartupWindow::parseTransitions(const QJsonObject &root, JsonAutomaton &automaton)
+{
+    QJsonObject transitions = root.value("Transitions").toObject();
+    for (const QString &name : transitions.keys())
+    {
+        QJsonObject content = transitions[name].toObject();
+
+        JsonTransition transition;
+        transition.name = name;
+        transition.fromName = content["from"].toString();
+        transition.toName = content["to"].toString();
+        transition.event = content["event"].toString();
+        transition.condition = content["condition"].toString();
+        transition.delay = content["delay"].toString();
+
+        automaton.transitionList.append(transition);
+    }
+}
+
 // parse the loaded json document
-// TODO create an automaton based on the json structure
 void StartupWindow::jsonParser(const QJsonObject &root)
 {
-    Automaton automaton;
+    JsonAutomaton automaton;
 
     automaton.name = root.value("Name").toString();
     automaton.description = root.value("Description").toString();
-    QString name = automaton.name;
-    QString description = automaton.description;
 
-    // debug
-    qDebug() << name;
-    qDebug() << description;
-
-    // open main window with parsed name and description of automaton
-    MainWindow *mainWindow = new MainWindow(name, description);
-    mainWindow->show();
-    this->close(); // close this window
+    parseInputs(root, automaton);
+    parseOutputs(root, automaton);
+    parseVariables(root, automaton);
+    parseStates(root, automaton);
+    parseTransitions(root, automaton);
 }
 
 // destructor
