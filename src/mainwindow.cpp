@@ -2,8 +2,31 @@
 #include "ui_mainwindow.h"
 #include <QDebug>
 
-// TODO: prechod aaa a->a a potom aaa a->b chyba; simulaciu
+/* TODO - prechod aaa a->a a potom aaa a->b chyba; simulaciu
+        - z vytvoreneho automatu vygenerovat json
+        - dekompozicia trochu lebo je v tom border uz
+*/
 
+// initialize scene
+void MainWindow::initScene()
+{
+    scene = new QGraphicsScene(this);
+
+    scene->setSceneRect(0, 0, 1000, 1000);
+    ui->graphicsView->setScene(scene);
+    ui->graphicsView->setSceneRect(0, 0, 1000, 1000);
+    ui->graphicsView->resetTransform();
+    ui->graphicsView->setMinimumSize(500, 500);
+    ui->graphicsView->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+
+    // Enable scrollbars
+    ui->graphicsView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+    ui->graphicsView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+
+    connect(scene, &QGraphicsScene::changed, this, &MainWindow::updateTransitions);
+}
+
+// constructor for creating automaton
 MainWindow::MainWindow(const QString &name, const QString &description, QWidget *parent): QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
@@ -22,22 +45,10 @@ MainWindow::MainWindow(const QString &name, const QString &description, QWidget 
         initDrag();
     });
 
-    // Initialize scene
-    scene = new QGraphicsScene(this);
-    scene->setSceneRect(0, 0, 1000, 1000);
-    ui->graphicsView->setScene(scene);
-    ui->graphicsView->setSceneRect(0, 0, 1000, 1000);
-    ui->graphicsView->resetTransform();
-    ui->graphicsView->setMinimumSize(500, 500);
+    initScene();
 
-    // Enable scrollbars
-    ui->graphicsView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-    ui->graphicsView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-
-    ui->graphicsView->setAlignment(Qt::AlignTop | Qt::AlignLeft);
     connect(scene, &QGraphicsScene::changed, this, &MainWindow::updateTransitions);
     ui->nameDesc->setText(name + " - " + description);
-
     initializeControlWidget();
     logText("Automaton " + name + " initialized");
 
@@ -45,12 +56,96 @@ MainWindow::MainWindow(const QString &name, const QString &description, QWidget 
     connect(ui->inEdit, &QLineEdit::returnPressed, this, &MainWindow::handleInput);
 }
 
+// constructor for loading automaton from file
+MainWindow::MainWindow(const JsonAutomaton &automaton, QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
+{
+    ui->setupUi(this);
+    setAcceptDrops(false);
+    ui->listWidget->setDragEnabled(false); // drag off
+    ui->graphicsView->viewport()->setAcceptDrops(false); // drop off
+
+    initScene();
+
+    initializeControlWidget();
+    ui->nameDesc->setText(automaton.name + " - " + automaton.description);
+    logText("Loaded automaton: " + automaton.name);
+
+    buildStatesFromLoaded(automaton.stateList);
+    buildTransitionsFromLoaded(automaton.transitionList);
+}
+
+// build states from loaded file
+void MainWindow::buildStatesFromLoaded(const QList<JsonState> &states)
+{
+    for (const JsonState &state : states)
+    {
+        QString type;
+        if (state.isFinal)
+        {
+            type = "Final state";
+        }
+        else
+        {
+            type = "State";
+        }
+
+        QPointF position(100 + stateItems.size() * 100, 100); // random distance between
+
+        StateItem *stateItem = createState(type, position);
+
+        setStateLabel(state.name, stateItem);
+
+        stateItems[state.name] = stateItem;
+
+        if (state.isFinal)
+        {
+            logText("Added final state: " + state.name);
+        }
+        else
+        {
+            logText("Added state: " + state.name);
+        }
+
+        if (state.isInitial && !currentState)
+        {
+            currentState = stateItem;
+            highlightState(currentState);
+            logText("Set initial state: " + state.name);
+        }
+    }
+}
+
+void MainWindow::buildTransitionsFromLoaded(const QList<JsonTransition> &transitions)
+{
+    for (const JsonTransition &transition : transitions)
+    {
+        if (!stateItems.contains(transition.fromName) || !stateItems.contains(transition.toName))
+        {
+            QMessageBox::warning(this, "Error", "Unknown state");
+            continue;
+        }
+
+        StateItem *fromState = stateItems[transition.fromName];
+        StateItem *toState = stateItems[transition.toName];
+
+        QPointF arrowPos;
+        double angle;
+        QPainterPath path = createTransitionPath(fromState, toState, arrowPos, angle);
+
+        QGraphicsPathItem *pathItem = scene->addPath(path, QPen(Qt::black));
+
+        setTransitionLabel(transition.name, fromState, toState, pathItem, path);
+
+        logText("Added transition: " + transition.name + " from state: " + transition.fromName + " to state: " + transition.toName);
+    }
+}
+
 // New slot to handle input
 void MainWindow::handleInput()
 {
     QString input = ui->inEdit->text().trimmed();
     if (input.isEmpty()) {
-        QMessageBox::warning(this, "Error", "Input cannot be empty.");
+        QMessageBox::warning(this, "Error", "Input cannot be empty");
         return;
     }
 
@@ -304,6 +399,15 @@ QGraphicsPolygonItem *MainWindow::createArrow(const QPointF &arrowPos, double an
     return scene->addPolygon(arrow, QPen(Qt::black), QBrush(Qt::black));
 }
 
+void MainWindow::setStateLabel(QString stateName, StateItem *state)
+{
+    QGraphicsTextItem *label = new QGraphicsTextItem(stateName, state);
+    label->setDefaultTextColor(Qt::black);
+    QRectF rect = state->rect();
+    QRectF labelRect = label->boundingRect();
+    label->setPos(rect.width() / 2 - labelRect.width() / 2, rect.height() / 2 - labelRect.height() / 2);
+}
+
 void MainWindow::setTransitionLabel(const QString &transitionName, StateItem *from, StateItem *to, QGraphicsPathItem *transition, const QPainterPath &path)
 {
     Transition t;
@@ -328,6 +432,11 @@ void MainWindow::setTransitionLabel(const QString &transitionName, StateItem *fr
 
         t.label->setPos(pos.x() - t.label->boundingRect().width() / 2, pos.y() - t.label->boundingRect().height() / 2);
     }
+
+    QPointF arrowPos;
+    double angle;
+    createTransitionPath(from, to, arrowPos, angle);
+    t.arrow = createArrow(arrowPos, angle);
 
     transitionItems.insert(transitionName, t);
 }
@@ -399,11 +508,7 @@ void MainWindow::handleDropEvent(QDropEvent *event)
             break;
         }
 
-        QGraphicsTextItem *label = new QGraphicsTextItem(stateName, state);
-        label->setDefaultTextColor(Qt::black);
-        QRectF rect = state->rect();
-        QRectF labelRect = label->boundingRect();
-        label->setPos(rect.width() / 2 - labelRect.width() / 2, rect.height() / 2 - labelRect.height() / 2);
+        setStateLabel(stateName, state);
 
         stateItems[stateName] = state;
         logText("Added state " + stateName);

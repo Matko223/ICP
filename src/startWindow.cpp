@@ -1,10 +1,9 @@
 #include "startWindow.h"
 #include "mainwindow.h"
+#include "fileParser.h"
 #include "ui_startup.h"
 
-StartupWindow::StartupWindow(QWidget *parent)
-    : QMainWindow(parent)
-    , ui(new Ui::startWindow)
+StartupWindow::StartupWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::startWindow)
 {
     ui->setupUi(this);
 
@@ -38,14 +37,16 @@ void StartupWindow::createButton()
 void StartupWindow::loadButton()
 {
     // open file dialog in actual window
-    QString filePath = QFileDialog::getOpenFileName(this, "Load automaton from external file", "", "(*.json *.txt)");
-    if (filePath.isEmpty()) {
+    QString filePath = QFileDialog::getOpenFileName(this, "Load automaton", "", "(*.json *.txt)");
+    if (filePath.isEmpty())
+    {
         return;
     }
 
     QFile file(filePath);
     // file is read only
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
         QMessageBox::warning(this, "Error", "Failed to open file");
         return;
     }
@@ -57,99 +58,19 @@ void StartupWindow::loadButton()
     QJsonParseError parseErr;
     // create json document from byte array
     QJsonDocument doc = QJsonDocument::fromJson(data, &parseErr);
-    if (parseErr.error != QJsonParseError::NoError) {
+    if (parseErr.error != QJsonParseError::NoError)
+    {
         QMessageBox::warning(this, "Error", "JSON parsing");
         return;
     }
 
     // main json object
     QJsonObject root = doc.object();
-    jsonParser(root);
-}
+    JsonAutomaton automaton = FileParser::parse(root);
 
-void StartupWindow::parseInputs(const QJsonObject &root, JsonAutomaton &automaton)
-{
-    QJsonArray input = root.value("Inputs").toArray();
-    for (const QJsonValue &value : input)
-    {
-        automaton.inputs.append(value.toString());
-    }
-}
-
-void StartupWindow::parseOutputs(const QJsonObject &root, JsonAutomaton &automaton)
-{
-    QJsonArray output = root.value("Outputs").toArray();
-    for (const QJsonValue &value : output)
-    {
-        automaton.outputs.append(value.toString());
-    }
-}
-
-void StartupWindow::parseVariables(const QJsonObject &root, JsonAutomaton &automaton)
-{
-    QJsonObject variable = root.value("Variables").toObject();
-    for (const QString &name : variable.keys())
-    {
-        QJsonObject content = variable[name].toObject();
-
-        JsonVariable var;
-        var.name = name;
-        var.type = content["type"].toString();
-        var.value = content["value"].toVariant();
-
-        automaton.variableList.append(var);
-    }
-}
-
-void StartupWindow::parseStates(const QJsonObject &root, JsonAutomaton &automaton)
-{
-    QJsonObject states = root.value("States").toObject();
-    for (const QString &name : states.keys())
-    {
-        QJsonObject content = states[name].toObject();
-
-        JsonState state;
-        state.name = name;
-        state.action  = content["action"].toString();
-        state.isInitial = content["initial"].toBool(false);
-        state.isFinal = content["final"].toBool(false);
-
-        automaton.stateList.append(state);
-    }
-}
-
-void StartupWindow::parseTransitions(const QJsonObject &root, JsonAutomaton &automaton)
-{
-    QJsonObject transitions = root.value("Transitions").toObject();
-    for (const QString &name : transitions.keys())
-    {
-        QJsonObject content = transitions[name].toObject();
-
-        JsonTransition transition;
-        transition.name = name;
-        transition.fromName = content["from"].toString();
-        transition.toName = content["to"].toString();
-        transition.event = content["event"].toString();
-        transition.condition = content["condition"].toString();
-        transition.delay = content["delay"].toString();
-
-        automaton.transitionList.append(transition);
-    }
-}
-
-// parse the loaded json document
-void StartupWindow::jsonParser(const QJsonObject &root)
-{
-    JsonAutomaton automaton;
-
-    automaton.name = root.value("Name").toString();
-    automaton.description = root.value("Description").toString();
-
-    parseInputs(root, automaton);
-    parseOutputs(root, automaton);
-    parseVariables(root, automaton);
-    parseStates(root, automaton);
-    parseTransitions(root, automaton);
+    MainWindow *mainWindow = new MainWindow(automaton);
+    mainWindow->show();
+    this->close();
 }
 
 // destructor
@@ -157,3 +78,4 @@ StartupWindow::~StartupWindow()
 {
     delete ui;
 }
+

@@ -27,6 +27,7 @@
 #include <QtMath>
 #include "startWindow.h"
 #include "stateitem.h"
+#include "fileParser.h"
 
 #define PI 3.14159
 
@@ -51,7 +52,12 @@ class MainWindow : public QMainWindow
 
 public:
     explicit MainWindow(const QString &name, const QString &description, QWidget *parent = nullptr);
+    explicit MainWindow(const JsonAutomaton &automaton, QWidget *parent = nullptr);
+    void initScene();
     void logText(QString str);
+
+    void buildStatesFromLoaded(const QList<JsonState> &states);
+    void buildTransitionsFromLoaded(const QList<JsonTransition> &transitions);
 
     void initializeControlWidget();
     void startSimulation();
@@ -70,7 +76,7 @@ public:
     void handleDropEvent(QDropEvent *event);
     bool eventFilter(QObject *obj, QEvent *event) override;
     void initDrag();
-
+    void setStateLabel(QString stateName, StateItem *state);
     void highlightState(StateItem *state); // Changed to StateItem
     void clearHighlight(StateItem *state); // Changed to StateItem
 
