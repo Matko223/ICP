@@ -65,7 +65,7 @@ public:
     void cancelSimulation();
     void resetSimulation();
 
-    StateItem *createState(QString type, QPointF position); // Changed to StateItem
+    StateItem *createState(QPointF position); // Changed to StateItem
 
     bool createTransitionDialog(QString &transitionName, QString &fromState, QString &toState);
     QPainterPath createTransitionPath(StateItem *from, StateItem *to, QPointF &arrowPos, double &angle); // Changed to StateItem

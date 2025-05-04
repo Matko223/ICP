@@ -45,7 +45,6 @@ void FileParser::parseStates(const QJsonObject &root, JsonAutomaton &automaton)
         state.name = name;
         state.action  = content["action"].toString();
         state.isInitial = content["initial"].toBool(false);
-        state.isFinal = content["final"].toBool(false);
 
         automaton.stateList.append(state);
     }

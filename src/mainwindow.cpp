@@ -79,32 +79,15 @@ void MainWindow::buildStatesFromLoaded(const QList<JsonState> &states)
 {
     for (const JsonState &state : states)
     {
-        QString type;
-        if (state.isFinal)
-        {
-            type = "Final state";
-        }
-        else
-        {
-            type = "State";
-        }
-
         QPointF position(100 + stateItems.size() * 100, 100); // random distance between
 
-        StateItem *stateItem = createState(type, position);
+        StateItem *stateItem = createState(position);
 
         setStateLabel(state.name, stateItem);
 
         stateItems[state.name] = stateItem;
 
-        if (state.isFinal)
-        {
-            logText("Added final state: " + state.name);
-        }
-        else
-        {
-            logText("Added state: " + state.name);
-        }
+        logText("Added state: " + state.name);
 
         if (state.isInitial && !currentState)
         {
@@ -255,28 +238,13 @@ void MainWindow::cancelSimulation()
 // create new state and add it to the scene
 // distinguish between normal and final state
 // Create state using StateItem
-StateItem *MainWindow::createState(QString type, QPointF position)
+StateItem *MainWindow::createState(QPointF position)
 {
     StateItem *state = new StateItem(0, 0, 50, 50);
     state->setPos(position);
 
-    if (type == "Final state") {
-        state->setPen(QPen(Qt::black));
-        state->setBrush(Qt::transparent);
-
-        // Final state has 2 circles
-        StateItem *innerCircle = new StateItem(5, 5, 40, 40, state);
-        innerCircle->setPen(QPen(Qt::black));
-        innerCircle->setBrush(Qt::transparent);
-        // Disable movability, selectability, and event handling for the inner circle
-        innerCircle->setFlag(QGraphicsItem::ItemIsMovable, false);
-        innerCircle->setFlag(QGraphicsItem::ItemIsSelectable, false);
-        innerCircle->setAcceptHoverEvents(false);
-        innerCircle->setAcceptedMouseButtons(Qt::NoButton);
-    } else {
-        state->setPen(QPen(Qt::black));
-        state->setBrush(Qt::transparent);
-    }
+    state->setPen(QPen(Qt::black));
+    state->setBrush(Qt::transparent);
 
     scene->addItem(state);
     return state;
@@ -486,8 +454,8 @@ void MainWindow::handleDropEvent(QDropEvent *event)
     QString type = event->mimeData()->text();
     QPointF position = ui->graphicsView->mapToScene(event->pos());
 
-    if (type == "State" || type == "Final state") {
-        StateItem *state = createState(type, position);
+    if (type == "State") {
+        StateItem *state = createState(position);
 
         bool ok;
         QString stateName;

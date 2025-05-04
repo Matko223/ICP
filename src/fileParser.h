@@ -19,7 +19,6 @@ struct JsonState
     QString name;
     QString action;
     bool isInitial;
-    bool isFinal;
 };
 
 struct JsonTransition
