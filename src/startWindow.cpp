@@ -1,6 +1,6 @@
 #include "startWindow.h"
 #include "mainwindow.h"
-#include "fileParser.h"
+#include "MooreMachine.h"
 #include "ui_startup.h"
 
 StartupWindow::StartupWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::startWindow)
@@ -43,32 +43,9 @@ void StartupWindow::loadButton()
         return;
     }
 
-    QFile file(filePath);
-    // file is read only
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-    {
-        QMessageBox::warning(this, "Error", "Failed to open file");
-        return;
-    }
-
-    // file content is byte array
-    QByteArray data = file.readAll();
-    file.close();
-
-    QJsonParseError parseErr;
-    // create json document from byte array
-    QJsonDocument doc = QJsonDocument::fromJson(data, &parseErr);
-    if (parseErr.error != QJsonParseError::NoError)
-    {
-        QMessageBox::warning(this, "Error", "JSON parsing");
-        return;
-    }
-
-    // main json object
-    QJsonObject root = doc.object();
-    JsonAutomaton automaton = FileParser::parse(root);
-
-    MainWindow *mainWindow = new MainWindow(automaton);
+    // Create a MainWindow instance with default name and description
+    MainWindow *mainWindow = new MainWindow("Loaded Automaton", "Loaded from file", nullptr);
+    mainWindow->loadAutomatonFromMooreMachine(filePath);
     mainWindow->show();
     this->close();
 }

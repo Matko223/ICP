@@ -27,17 +27,40 @@
 #include <QtMath>
 #include "startWindow.h"
 #include "stateitem.h"
-#include "fileParser.h"
+#include "MooreMachine.h"
 
 #define PI 3.14159
 
-struct Transition
-{
-    StateItem *from_state; // Changed to StateItem
-    StateItem *to_state;   // Changed to StateItem
+/**
+ * TODO: TOTO URCITE PREROBIT, NECH VYUZAVIME LEM Z MOOREMACHINE.h
+ * 
+ * ESTE PRI VYTVARANI VLASTNEHO AUTOMATU TREBA PREPOJIT
+ */
+struct JsonState {
+    QString name;
+    bool isInitial = false;
+};
+
+struct JsonTransition {
+    QString name;
+    QString fromName;
+    QString toName;
+};
+
+struct JsonAutomaton {
+    QString name;
+    QString description;
+    QList<JsonState> stateList;
+    QList<JsonTransition> transitionList;
+};
+
+struct Transition {
+    StateItem *from_state;
+    StateItem *to_state;
     QGraphicsPathItem *path;
     QGraphicsPolygonItem *arrow;
     QGraphicsTextItem *label;
+    QString name;
 };
 
 QT_BEGIN_NAMESPACE
@@ -53,6 +76,7 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(const QString &name, const QString &description, QWidget *parent = nullptr);
     explicit MainWindow(const JsonAutomaton &automaton, QWidget *parent = nullptr);
+    explicit MainWindow(const QString &jsonFilePath, QWidget *parent = nullptr);
     void initScene();
     void logText(QString str);
 
@@ -65,20 +89,23 @@ public:
     void cancelSimulation();
     void resetSimulation();
 
-    StateItem *createState(QPointF position); // Changed to StateItem
+    StateItem *createState(QPointF position);
 
     bool createTransitionDialog(QString &transitionName, QString &fromState, QString &toState);
-    QPainterPath createTransitionPath(StateItem *from, StateItem *to, QPointF &arrowPos, double &angle); // Changed to StateItem
+    QPainterPath createTransitionPath(StateItem *from, StateItem *to, QPointF &arrowPos, double &angle);
     void drawArrow(const QPointF &arrowPos, double angle);
     QGraphicsPolygonItem *createArrow(const QPointF &arrowPos, double angle);
-    void setTransitionLabel(const QString &name, StateItem *from, StateItem *to, QGraphicsPathItem *pathItem, const QPainterPath &path); // Changed to StateItem
+    void setTransitionLabel(const QString &name, StateItem *from, StateItem *to, QGraphicsPathItem *pathItem, const QPainterPath &path);
 
     void handleDropEvent(QDropEvent *event);
     bool eventFilter(QObject *obj, QEvent *event) override;
     void initDrag();
     void setStateLabel(QString stateName, StateItem *state);
-    void highlightState(StateItem *state); // Changed to StateItem
-    void clearHighlight(StateItem *state); // Changed to StateItem
+    void highlightState(StateItem *state);
+    void clearHighlight(StateItem *state);
+
+    void loadAutomatonFromMooreMachine(const QString &filename);
+    void openFileHandler();
 
     ~MainWindow();
 
@@ -90,9 +117,9 @@ private:
     Ui::MainWindow *ui;
     QGraphicsScene *scene;
     QMap<QString, Transition> transitionItems;
-    QMap<QString, StateItem *> stateItems; // Changed to StateItem
+    QMap<QString, StateItem *> stateItems;
     int logCounter = 1;
-    StateItem *currentState = nullptr; // Changed to StateItem
+    StateItem *currentState = nullptr;
     QString lastInput;
 };
 

@@ -13,7 +13,6 @@ SOURCES += \
     mainwindow.cpp \
     startWindow.cpp \
     stateitem.cpp \
-    fileParser.cpp \
     CodeExecutor.cpp \
     MooreMachine.cpp
 
@@ -21,7 +20,6 @@ HEADERS += \
     mainwindow.h \
     startWindow.h \
     stateitem.h \
-    fileParser.h \
     CodeExecutor.h \
     MooreMachine.h \
     Structs.h \

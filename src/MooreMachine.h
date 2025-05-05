@@ -151,6 +151,28 @@ public:
 
     // Loads the file, parses json and add values to internal attributes
     void loadFromJSONFile(const std::string& filename);
+
+    // INLINE GETTERs - Attributes in private
+
+    // Gets machine name
+    std::string getMachineName() const { 
+        return machineName; 
+    }
+
+    // Gets machine description
+    std::string getMachineDescription() const { 
+        return machineDescription; 
+    }
+
+    // Gets all states
+    const std::vector<State>& getStates() const { 
+        return states; 
+    }
+
+    // Gets start state
+    int getStartState() const { 
+        return startState; 
+    }
 };
 
 #endif

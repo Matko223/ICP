@@ -406,7 +406,13 @@ void MainWindow::setTransitionLabel(const QString &transitionName, StateItem *fr
     createTransitionPath(from, to, arrowPos, angle);
     t.arrow = createArrow(arrowPos, angle);
 
-    transitionItems.insert(transitionName, t);
+    // Create unique identifier for this transition
+    QString uniqueId = QString("%1_%2_%3").arg(transitionName).arg((quintptr)from).arg((quintptr)to);
+    
+    t.name = transitionName;
+    
+    // Use the unique ID as the map key
+    transitionItems.insert(uniqueId, t);
 }
 
 // Update all transitions when a state is moved
@@ -414,7 +420,8 @@ void MainWindow::updateTransitions()
 {
     for (auto it = transitionItems.begin(); it != transitionItems.end(); ++it) {
         Transition &t = it.value();
-        QString transitionName = it.key();
+        
+        QString transitionName = t.name;
 
         scene->removeItem(t.path);
         scene->removeItem(t.arrow);
@@ -523,8 +530,14 @@ void MainWindow::handleDropEvent(QDropEvent *event)
                 QPointF pos = center + offset;
                 t.label->setPos(pos.x() - t.label->boundingRect().width() / 2, pos.y() - t.label->boundingRect().height() / 2);
             }
+            
+            t.name = transitionName;
 
-            transitionItems.insert(transitionName, t);
+            // Creates unique ID
+            QString uniqueId = QString("%1_%2_%3").arg(transitionName).arg((quintptr)from).arg((quintptr)to);
+
+            // ID as key
+            transitionItems.insert(uniqueId, t);
             logText("Added transition from " + fromState + " to " + toState);
         }
     }
@@ -579,11 +592,75 @@ void MainWindow::highlightState(StateItem *state)
     }
 }
 
+// Clear highlight from a state
 void MainWindow::clearHighlight(StateItem *state)
 {
     if (state) {
         state->setBrush(Qt::transparent);
         state->update();
+    }
+}
+
+// Load automaton from MooreMachine JSON file
+void MainWindow::loadAutomatonFromMooreMachine(const QString &filename)
+{
+    MooreMachine machine;
+    
+    machine.loadFromJSONFile(filename.toStdString());
+    
+    // Convert to JsonAutomaton structure
+    JsonAutomaton automaton;
+    automaton.name = QString::fromStdString(machine.getMachineName());
+    automaton.description = QString::fromStdString(machine.getMachineDescription());
+    
+    // Convert states
+    QList<JsonState> states;
+    const auto& machineStates = machine.getStates();
+    for (size_t i = 0; i < machineStates.size(); i++) {
+        const auto& state = machineStates[i];
+        JsonState jsonState;
+        jsonState.name = QString::fromStdString(state.name);
+        jsonState.isInitial = (i == static_cast<size_t>(machine.getStartState()));
+        states.append(jsonState);
+    }
+    automaton.stateList = states;
+    
+    // Convert transitions
+    QList<JsonTransition> transitions;
+    for (size_t i = 0; i < machineStates.size(); i++) {
+        const auto& state = machineStates[i];
+        for (const auto& [transExpr, nextStateIdx] : state.transitions) {
+            JsonTransition jsonTransition;
+            jsonTransition.fromName = QString::fromStdString(state.name);
+            jsonTransition.toName = QString::fromStdString(machineStates[nextStateIdx].name);
+            
+            // Create name for the transition
+            QString transName = QString::fromStdString(transExpr.inputEvent);
+            if (!transExpr.boolExpr.empty()) {
+                transName += "[" + QString::fromStdString(transExpr.boolExpr) + "]";
+            }
+            jsonTransition.name = transName;
+            
+            transitions.append(jsonTransition);
+        }
+    }
+    automaton.transitionList = transitions;
+    
+    ui->nameDesc->setText(automaton.name + " - " + automaton.description);
+    logText("Loaded automaton: " + automaton.name);
+    
+    buildStatesFromLoaded(automaton.stateList);
+    buildTransitionsFromLoaded(automaton.transitionList);
+}
+
+// Open file dialog to load automaton from file
+void MainWindow::openFileHandler()
+{
+    QString filename = QFileDialog::getOpenFileName(this, tr("Open Automaton"), "", tr("JSON Files (*.json)"));
+        
+    if (!filename.isEmpty()) {
+        resetSimulation();
+        loadAutomatonFromMooreMachine(filename);
     }
 }
 
