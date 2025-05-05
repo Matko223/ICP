@@ -7,6 +7,8 @@
 #include "CodeExecutor.h"
 #include "MooreMachine.h"
 #include <fstream>
+#include <thread>
+#include <chrono>
 using namespace std;
 
 void MooreMachine::dfs(int state, unordered_set<int>& visited) {
@@ -148,23 +150,50 @@ void MooreMachine::addVariable(const string& type, const string& name, const str
     variables.push_back({type, name, value});
 }
 
-void MooreMachine::addInput(const string& inputName) {
-    if (find(inputs.begin(), inputs.end(), inputName) == inputs.end()) {
-        inputs.push_back(inputName);
-    }
-
-    else {
-        cout << "Input \"" << inputName << "\" already exists" << endl;
+void MooreMachine::addInputs() {
+    // Loop through all states
+    for (const auto& state : states) {
+        // Loop through each transition of the current state
+        for (const auto& transition : state.transitions) {
+            const TransitionExpression& expr = transition.first;
+            // Check if the inputEvent is already in the inputs list
+            if (find(inputs.begin(), inputs.end(), expr.inputEvent) == inputs.end() && expr.inputEvent != "") {
+                // If it is not found, add it to the list
+                inputs.push_back(expr.inputEvent);
+            }
+        }
     }
 }
 
-void MooreMachine::addOutput(const string& outputName) {
-    if (find(outputs.begin(), outputs.end(), outputName) == outputs.end()) {
-        outputs.push_back(outputName);
-    }
+void MooreMachine::addOutputs() {
+    // Loop through all states
+    for (const auto& state : states) {
+        string outputExpr = state.outputExpr;
+        size_t pos = 0;
 
-    else {
-        cout << "Output \"" << outputName << "\" already exists" << endl;
+        // Look for occurrences of "output(" in the expression
+        while ((pos = outputExpr.find("output(", pos)) != std::string::npos) {
+            // Look for the opening " after output(
+            size_t startQuote = outputExpr.find("\"", pos);
+            size_t endQuote;
+            if (startQuote != std::string::npos) {
+                // Look for the closing "
+                endQuote = outputExpr.find("\"", startQuote + 1);
+                if (endQuote != std::string::npos) {
+                    // Extract the output name between the ""
+                    string outputName = outputExpr.substr(startQuote + 1, endQuote - startQuote - 1);
+
+                    // Check if the outputName is already in the list
+                    if (find(outputs.begin(), outputs.end(), outputName) == outputs.end()) {
+                        // If not found add it to the list
+                        outputs.push_back(outputName);
+                    }
+                }
+            }
+
+            // Move to the next occurrence of output(
+            pos = endQuote + 1;
+        }
     }
 }
 
@@ -191,9 +220,11 @@ void MooreMachine::processStartState() {
     executor.executeStateExpr(states[currentState].outputExpr);
 }
 
-// TODO: handle only inputEvent and timeout, multiple combinations too
+// TODO: handle only bool expr
 void MooreMachine::processInput(const string& inputName, const string& inputValue) {
     if(isInputValid(inputName)) {
+
+        setInitialOutput();
 
         // Get all the transitions for current state
         unordered_map<TransitionExpression, int> stateTransitions = getTransitions(states[currentState]);
@@ -204,21 +235,54 @@ void MooreMachine::processInput(const string& inputName, const string& inputValu
             // Transition contains input we chose
             if (expr.inputEvent == inputName) {
 
+                // Start new executor
+                CodeExecutor executor(*this, states[currentState].outputExpr, expr.boolExpr, inputName, inputValue);
+
                 // BoolExpr in [] is existing so we have to handle it
                 if (expr.boolExpr != "") {
-                    // Start new executor
-                    CodeExecutor executor(*this, states[currentState].outputExpr, expr.boolExpr, inputName, inputValue);
                     // Returns bool to know if we can do the transition
                     bool transitionByBool = executor.executeTransitionBoolExpr();
 
                     // If the transition is possible we move to the next state and do the next state action
-                    if(transitionByBool) {
+                    if (transitionByBool) {
+                        // Check if there is delay active for the current state, if so then interrupt delay because we can transition to next state
+                        if (delayActive) {
+                            interruptDelay();
+                        }
                         currentState = nextStateId;
+                        if(expr.delay != "" && getDelayValue(expr.delay) != -1) {
+                            this_thread::sleep_for(chrono::milliseconds(getDelayValue(expr.delay)));
+                        }
                         executor.executeStateExpr(states[currentState].outputExpr);
+
+                        // Get transitions of the state we moved into
+                        unordered_map<TransitionExpression, int> transferredToStateTransitions = getTransitions(states[currentState]);
+
+                        // Find if there is any state that has only delay defined
+                        for (const auto& [exprTransferred, nextStateIdTransferred] : transferredToStateTransitions) {
+                            if (exprTransferred.boolExpr == "" && exprTransferred.inputEvent == "" && exprTransferred.delay != "") {
+                                handleDelay(exprTransferred.delay, nextStateIdTransferred);
+                            }
+                        }
                     }
                 }
                 else {
-                    cout << "Not implemented" << endl;
+                    // If we moved to the state after delay was fulfilled then we check if the state doesn't have only delay again
+                    if (expr.boolExpr == "" && expr.inputEvent == "" && expr.delay != "" && inputName == "" && inputValue == "") {
+                        handleDelay(expr.delay, nextStateId);
+                    }
+
+                    else if (expr.boolExpr == "" && expr.inputEvent != "") {
+                        currentState = nextStateId;
+                        if(expr.delay != "" && getDelayValue(expr.delay) != -1) {
+                            this_thread::sleep_for(chrono::milliseconds(getDelayValue(expr.delay)));
+                        }
+                        executor.executeStateExpr(states[currentState].outputExpr);
+                    }
+
+                    else {
+                        cout << "Not implemented" << endl;
+                    }
                 }
             }
         }
@@ -230,6 +294,10 @@ void MooreMachine::processInput(const string& inputName, const string& inputValu
 }
 
 bool MooreMachine::isInputValid(const string& inputName) {
+    if (inputName == "") {
+        return true;
+    }
+
     for (const auto& input : inputs) {
         if (input == inputName) {
             return true;
@@ -249,6 +317,105 @@ vector<Variable> MooreMachine::getVars() {
 
 vector<string> MooreMachine::getInputs() {
     return inputs;
+}
+
+bool MooreMachine::delayValid(const string& delayValue) {
+    // We resolve delay value
+    // Check if it is a number
+    if (CodeExecutor::isNumber(delayValue)) {
+        return true;;
+    }
+
+    // Check if it is valid variable
+    else {
+        for (const auto& var : variables) {
+            if (var.name == delayValue && CodeExecutor::isNumber(var.value)) {
+                return true;
+            }
+            else {
+                cout << "Variable \"" << delayValue << "\" for delay does not exist in machine or value of the variable is not a number" << endl;
+                return false;
+            }
+        }
+    }
+
+    return false;
+}
+
+int MooreMachine::getDelayValue(const string& delayValue) {
+    if (delayValid(delayValue)) {
+        // Number
+        if (CodeExecutor::isNumber(delayValue)) {
+            return stoi(delayValue);;
+        }
+
+        // Variable
+        else {
+            for (const auto& var : variables) {
+                if (var.name == delayValue && CodeExecutor::isNumber(var.value)) {
+                    return stoi(var.value);
+                }
+                return -1;
+            }
+        }
+    }
+
+    return -1;
+}
+
+void MooreMachine::handleDelay(const string& delayValue, int nextState) {
+    int delay;
+
+    // We resolve delay value
+    // Check if it is a number
+    if (CodeExecutor::isNumber(delayValue)) {
+        delay = stoi(delayValue);
+    }
+
+    // Check if it is valid variable
+    else {
+        for (const auto& var : variables) {
+            if (var.name == delayValue && CodeExecutor::isNumber(var.value)) {
+                delay = stoi(var.value);
+            }
+            else {
+                cout << "Variable \"" << delayValue << "\" for delay does not exist in machine or value of the variable is not a number" << endl;
+                return;
+            }
+        }
+    }
+
+    // Create thread for the state
+    thread([this, delay, nextState] () {
+        unique_lock<mutex> lock(mtx);
+        delayActive = true;
+        bool timedOut = !cv.wait_for(lock, chrono::milliseconds(delay), [this] {
+            return delayCancel;
+        });
+
+        // Delay was fulfilled
+        if(timedOut) {
+            cout << "Delay finished normally" << endl;
+            delayActive = false;
+            currentState = nextState;
+            processInput("", "");
+        }
+
+        // Delay was interrupted
+        else {
+            cout << "Delay interrupted" << endl;
+            delayActive = false;
+        }
+    }).detach();
+}
+
+void MooreMachine::interruptDelay() {
+    {
+        lock_guard<mutex> lock(mtx);
+        delayCancel = true;
+    }
+
+    cv.notify_all();
 }
 
 void MooreMachine::checkReachability() {
@@ -525,22 +692,21 @@ void MooreMachine::loadFromJSONFile(const string& filename) {
     // Add variables
     machine.addVariable("int", "timeout", "5000");
 
-    machine.addInput("in");
-    machine.addInput("ian");
-    machine.addOutput("out");
-    machine.setInitialOutput();
-
     // Add transitions
     machine.addTransition(s0, "in [ atoi(valueof(\"in\")) == 1  ]", s1); // state 0 -> state 1 on "in == 1"
     machine.addTransition(s1, "in [ atoi(valueof(\"in\")) == 0  ]", s2); // state 0 -> state 2 on "in == 0"
     machine.addTransition(s2, "in [ atoi(valueof(\"in\")) == 1  ]", s1); // state 1 -> state 0 on "in == 1"
     machine.addTransition(s2, "@ timeout", s0); // state 1 -> state 2 on "timeout"
 
-    machine.checkReachability();
-    machine.checkDeadStates();
-    machine.checkRedundancy();
+    //machine.checkReachability();
+    //machine.checkDeadStates();
+    //machine.checkRedundancy();
 
     //machine.createJSONFile("automat");
+
+    machine.addInputs();
+    machine.addOutputs();
+    machine.setInitialOutput();
 
     machine.processStartState();
 
@@ -550,6 +716,14 @@ void MooreMachine::loadFromJSONFile(const string& filename) {
     machine.processInput("in", "1");
 
     machine.printMachine();
+
+    machine.processInput("in", "0");
+
+    machine.printMachine();
+
+    //this_thread::sleep_for(chrono::milliseconds(12000));
+
+    //machine.printMachine();
 
     //machine.loadFromJSONFile("automat.json");
     //machine.printMachine();

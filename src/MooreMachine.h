@@ -8,6 +8,8 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <algorithm>
+#include <mutex>
+#include <condition_variable>
 #include "json.hpp"
 #include "Structs.h"
 
@@ -46,6 +48,18 @@ private:
     // Contains whole output history
     std::unordered_map<std::string, std::string> outputHistory;
 
+    // Value to tell if delay should be cancelled or not
+    bool delayCancel = false;
+    
+    // Value to tell if delay is active or not
+    bool delayActive = false;
+
+    // Mutex for protecting shared data in the thread
+    std::mutex mtx;
+
+    // For blocking threads
+    std::condition_variable cv;
+
     // Goes through the transitions of each state and checks if they are reachable
     // If the state is reachable it will save the state into visited
     void dfs(int state, std::unordered_set<int>& visited);
@@ -71,6 +85,12 @@ private:
     // Changes json to Variable struct
     Variable jsonToVariable(const nlohmann::ordered_json& j);
 
+    // Checks if delay is valid
+    bool delayValid(const std::string& delayValue);
+
+    // Gets the value of the delay
+    int getDelayValue(const std::string& delayValue);
+
 public:
     // Constructor
     MooreMachine();
@@ -89,11 +109,11 @@ public:
     // Checks if the type is valid
     void addVariable(const std::string& type, const std::string& name, const std::string& value = "0");
     
-    // Adds an input name
-    void addInput(const std::string& inputName);
+    // Adds inputs to the machine
+    void addInputs();
     
-    // Adds an output name
-    void addOutput(const std::string& outputName);
+    // Adds outputs to the machine
+    void addOutputs();
     
     // Adds name to the machine
     void addMachineName(const std::string& machineName);
@@ -128,6 +148,12 @@ public:
     // Get all the inputs that machine can accept
     std::vector<std::string> getInputs();
 
+    // Resolves delay value and creates thread for the state
+    void handleDelay(const std::string& delayValue, int nextState);
+
+    // Sends interruption signal to the thread
+    void interruptDelay();
+
     // Going through all the states, if the state is not in the visited it means it is not reachable
     void checkReachability();
     
@@ -151,28 +177,6 @@ public:
 
     // Loads the file, parses json and add values to internal attributes
     void loadFromJSONFile(const std::string& filename);
-
-    // INLINE GETTERs - Attributes in private
-
-    // Gets machine name
-    std::string getMachineName() const { 
-        return machineName; 
-    }
-
-    // Gets machine description
-    std::string getMachineDescription() const { 
-        return machineDescription; 
-    }
-
-    // Gets all states
-    const std::vector<State>& getStates() const { 
-        return states; 
-    }
-
-    // Gets start state
-    int getStartState() const { 
-        return startState; 
-    }
 };
 
 #endif

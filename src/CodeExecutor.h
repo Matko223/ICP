@@ -49,9 +49,6 @@ private:
     // Returns integer representation of string value
     int atoi(const std::string& value);
 
-    // Helper function to check if the string value is number
-    bool isNumber(const std::string& expr);
-
     // Compares expression values, values can be of different type, we can only compare values of same type, no implicit conversions
     bool compareExprValues(const ExprValue& left, const ExprValue& right, const std::string& op);
 
@@ -71,6 +68,9 @@ public:
     // Evaluates each expression and type depends on what is returned
     // For more info see variants
     ExprValue evaluateExpr(const std::string& expr);
+
+    // Helper function to check if the string value is number
+    static bool isNumber(const std::string& expr);
 };
 
 #endif // CODEEXECUTOR_H

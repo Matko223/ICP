@@ -17,6 +17,7 @@ bool CodeExecutor::defined(const string& inputName) {
     return false;
 }
 
+// TODO variable handling
 string CodeExecutor::valueof(const string& inputName) {
     for (const auto& input : mooreMachine.getInputs()) {
         if (input == inputName) {
@@ -77,6 +78,7 @@ void CodeExecutor::executeStateExpr(const string& expr) {
             builtinFuncPos = pos;
         }
     }
+
     ExprValue builtinFuncEval = evaluateExpr(builtinFuncExpr);
 
     // TODO: variables
@@ -122,6 +124,10 @@ bool CodeExecutor::evaluateCond(const string& cond) {
 }
 
 ExprValue CodeExecutor::evaluateExpr(const string& expr) {
+    if ( expr == "") {
+        return -1;
+    }
+
     // defined func
     size_t definedPos = expr.find("defined(");
     if (definedPos != string::npos) {
