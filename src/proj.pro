@@ -11,11 +11,21 @@ CONFIG += c++17
 SOURCES += \
     main.cpp \
     mainwindow.cpp \
-    startWindow.cpp
+    startWindow.cpp \
+    stateitem.cpp \
+    fileParser.cpp \
+    CodeExecutor.cpp \
+    MooreMachine.cpp
 
 HEADERS += \
     mainwindow.h \
-    startWindow.h
+    startWindow.h \
+    stateitem.h \
+    fileParser.h \
+    CodeExecutor.h \
+    MooreMachine.h \
+    Structs.h \
+    json.hpp
 
 FORMS += \
     mainwindow.ui \
