@@ -397,6 +397,7 @@ void MooreMachine::handleDelay(const string& delayValue, int nextState) {
         if(timedOut) {
             cout << "Delay finished normally" << endl;
             delayActive = false;
+            delayCancel = false;
             currentState = nextState;
             processInput("", "");
         }
@@ -405,6 +406,7 @@ void MooreMachine::handleDelay(const string& delayValue, int nextState) {
         else {
             cout << "Delay interrupted" << endl;
             delayActive = false;
+            delayCancel = false;
         }
     }).detach();
 }
