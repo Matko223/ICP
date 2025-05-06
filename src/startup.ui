@@ -44,6 +44,7 @@
         <property name="font">
          <font>
           <pointsize>16</pointsize>
+          <weight>75</weight>
           <bold>true</bold>
          </font>
         </property>
@@ -51,7 +52,7 @@
          <string>Automaton name</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignmentFlag::AlignCenter</set>
+         <set>Qt::AlignCenter</set>
         </property>
        </widget>
       </item>
@@ -76,6 +77,7 @@
         <property name="font">
          <font>
           <pointsize>12</pointsize>
+          <weight>75</weight>
           <bold>true</bold>
          </font>
         </property>
@@ -83,7 +85,7 @@
          <string>Automaton description</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignmentFlag::AlignCenter</set>
+         <set>Qt::AlignCenter</set>
         </property>
        </widget>
       </item>
@@ -110,6 +112,7 @@
           <property name="font">
            <font>
             <pointsize>12</pointsize>
+            <weight>75</weight>
             <bold>true</bold>
            </font>
           </property>
@@ -117,6 +120,7 @@
            <string notr="true">QPushButton {
     background-color: rgb(0, 0, 0);
     color: rgb(255, 255, 255);
+	border-radius: 10px;
 }
 QPushButton:hover {
     background-color: rgb(105, 105, 105);
@@ -139,6 +143,7 @@ QPushButton:hover {
           <property name="font">
            <font>
             <pointsize>12</pointsize>
+            <weight>75</weight>
             <bold>true</bold>
            </font>
           </property>
@@ -146,6 +151,7 @@ QPushButton:hover {
            <string notr="true">QPushButton {
     background-color: rgb(0, 0, 0);
     color: rgb(255, 255, 255);
+	border-radius: 10px;
 }
 QPushButton:hover {
     background-color: rgb(105, 105, 105);

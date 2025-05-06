@@ -2,11 +2,6 @@
 #define STARTWINDOW_H
 
 #include <QMainWindow>
-#include <QIODevice>
-#include <QJsonObject>
-#include <QJsonArray>
-#include <QJsonParseError>
-#include <QDebug>
 
 namespace Ui {
 class startWindow;

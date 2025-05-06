@@ -400,6 +400,11 @@ void MooreMachine::handleDelay(const string& delayValue, int nextState) {
             delayCancel = false;
             currentState = nextState;
             processInput("", "");
+
+            // handle delay in gui
+            if (autoTransition) {
+                autoTransition(currentState);
+            }
         }
 
         // Delay was interrupted
@@ -678,6 +683,11 @@ void MooreMachine::loadFromJSONFile(const string& filename) {
     startState = 0;
     setInitialOutput();
 }
+
+int MooreMachine::getCurrentState() {
+    return currentState;
+}
+
 
 /* int main() {
     MooreMachine machine;

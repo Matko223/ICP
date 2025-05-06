@@ -95,6 +95,9 @@ public:
     // Constructor
     MooreMachine();
 
+    // Get index of current state
+    int getCurrentState();
+
     // Adds new start state to the machine
     int addStartState(std::string name, std::string outputExpr, const std::unordered_map<TransitionExpression, int>& transitions = {});
     
@@ -177,6 +180,38 @@ public:
 
     // Loads the file, parses json and add values to internal attributes
     void loadFromJSONFile(const std::string& filename);
+
+    std::string getMachineName() {
+        return machineName;
+    }
+
+    // Gets machine description
+    std::string getMachineDescription() {
+        return machineDescription;
+    }
+
+    // Gets all states
+    const std::vector<State>& getStates() {
+        return states;
+    }
+
+    // Gets start state
+    int getStartState() {
+        return startState;
+    }
+
+    // Get current output for gui logging
+    std::string getCurrentOutput()
+    {
+        std::string result;
+        for (const auto& [out, value] : currentOutput) {
+            result += out + ":" + value;
+        }
+        return result;
+    }
+
+    // Callback function for auto transition to the next state (after delay)
+    std::function<void(int)> autoTransition;
 };
 
 #endif

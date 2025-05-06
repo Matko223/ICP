@@ -31,6 +31,8 @@
 
 #define PI 3.14159
 
+using namespace std;
+
 /**
  * TODO: TOTO URCITE PREROBIT, NECH VYUZAVIME LEM Z MOOREMACHINE.h
  * 
@@ -88,6 +90,7 @@ public:
     void pauseSimulation();
     void cancelSimulation();
     void resetSimulation();
+    bool confirmDialog(const QString &windowTitle, const QString &dialogLabel);
 
     StateItem *createState(QPointF position);
 
@@ -107,6 +110,8 @@ public:
     void loadAutomatonFromMooreMachine(const QString &filename);
     void openFileHandler();
 
+    void updateState(int currentStateIndex);
+
     ~MainWindow();
 
 private slots:
@@ -121,6 +126,8 @@ private:
     int logCounter = 1;
     StateItem *currentState = nullptr;
     QString lastInput;
+    MooreMachine machine;
+    bool simulationStart = false;
 };
 
 #endif // MAINWINDOW_H

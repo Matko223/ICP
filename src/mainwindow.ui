@@ -64,7 +64,7 @@
       <rect>
        <x>0</x>
        <y>10</y>
-       <width>131</width>
+       <width>141</width>
        <height>31</height>
       </rect>
      </property>
@@ -73,7 +73,7 @@
        <widget class="QPushButton" name="startButton">
         <property name="maximumSize">
          <size>
-          <width>20</width>
+          <width>25</width>
           <height>16777215</height>
          </size>
         </property>
@@ -81,7 +81,7 @@
          <bool>false</bool>
         </property>
         <property name="styleSheet">
-         <string notr="true">background-color: white;
+         <string notr="true">background-color: green;
 image: url(:/playButton.png);</string>
         </property>
         <property name="text">
@@ -96,7 +96,7 @@ image: url(:/playButton.png);</string>
        <widget class="QPushButton" name="pauseButton">
         <property name="maximumSize">
          <size>
-          <width>20</width>
+          <width>25</width>
           <height>16777215</height>
          </size>
         </property>
@@ -104,7 +104,7 @@ image: url(:/playButton.png);</string>
          <bool>false</bool>
         </property>
         <property name="styleSheet">
-         <string notr="true">background-color: rgb(255, 255, 255);
+         <string notr="true">background-color: rgb(0, 85, 255);
 image: url(:/pauseButton.png);</string>
         </property>
         <property name="text">
@@ -119,7 +119,7 @@ image: url(:/pauseButton.png);</string>
        <widget class="QPushButton" name="resetButton">
         <property name="maximumSize">
          <size>
-          <width>20</width>
+          <width>25</width>
           <height>16777215</height>
          </size>
         </property>
@@ -142,7 +142,7 @@ image: url(:/restartButton.png);</string>
        <widget class="QPushButton" name="cancelButton">
         <property name="maximumSize">
          <size>
-          <width>20</width>
+          <width>25</width>
           <height>16777215</height>
          </size>
         </property>
@@ -166,7 +166,7 @@ image: url(:/cancelButton.png);</string>
     <widget class="QPushButton" name="pushButton">
      <property name="geometry">
       <rect>
-       <x>140</x>
+       <x>150</x>
        <y>10</y>
        <width>100</width>
        <height>30</height>
@@ -182,6 +182,7 @@ image: url(:/cancelButton.png);</string>
       <string notr="true">QPushButton {
     background-color: rgb(0, 0, 0);
     color: rgb(255, 255, 255);
+	border-radius:10px;
 }
 QPushButton:hover {
     background-color: rgb(105, 105, 105);
@@ -227,6 +228,9 @@ QPushButton:hover {
     <property name="frameShape">
      <enum>QFrame::NoFrame</enum>
     </property>
+    <property name="readOnly">
+     <bool>true</bool>
+    </property>
    </widget>
    <widget class="QLabel" name="logText">
     <property name="geometry">
@@ -240,6 +244,8 @@ QPushButton:hover {
     <property name="font">
      <font>
       <pointsize>12</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
      </font>
     </property>
     <property name="frameShape">
@@ -247,6 +253,9 @@ QPushButton:hover {
     </property>
     <property name="text">
      <string>Description</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
     </property>
    </widget>
    <widget class="QLabel" name="nameDesc">
@@ -275,12 +284,12 @@ QPushButton:hover {
       <x>10</x>
       <y>190</y>
       <width>131</width>
-      <height>141</height>
+      <height>131</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
-      <widget class="QLabel" name="label">
+      <widget class="QLabel" name="inLabel">
        <property name="maximumSize">
         <size>
          <width>16777215</width>
@@ -290,25 +299,64 @@ QPushButton:hover {
        <property name="font">
         <font>
          <pointsize>10</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
         </font>
        </property>
        <property name="text">
         <string>Input</string>
        </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="inEdit">
+      <widget class="QComboBox" name="inDropdown">
        <property name="maximumSize">
         <size>
          <width>16777215</width>
          <height>30</height>
         </size>
        </property>
+       <property name="styleSheet">
+        <string notr="true"/>
+       </property>
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="label_2">
+      <widget class="QLineEdit" name="inValue">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>30</height>
+        </size>
+       </property>
+       <property name="placeholderText">
+        <string>Value</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QWidget" name="verticalLayoutWidget_2">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>320</y>
+      <width>131</width>
+      <height>301</height>
+     </rect>
+    </property>
+    <layout class="QVBoxLayout" name="verticalLayout_2">
+     <item>
+      <widget class="QLabel" name="outLabel">
        <property name="maximumSize">
         <size>
          <width>16777215</width>
@@ -318,20 +366,31 @@ QPushButton:hover {
        <property name="font">
         <font>
          <pointsize>10</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
         </font>
        </property>
        <property name="text">
         <string>Output</string>
        </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="outEdit">
+      <widget class="QPlainTextEdit" name="outValue">
        <property name="maximumSize">
         <size>
          <width>16777215</width>
-         <height>30</height>
+         <height>270</height>
         </size>
+       </property>
+       <property name="acceptDrops">
+        <bool>false</bool>
+       </property>
+       <property name="readOnly">
+        <bool>true</bool>
        </property>
       </widget>
      </item>

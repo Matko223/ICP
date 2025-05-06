@@ -53,25 +53,7 @@ MainWindow::MainWindow(const QString &name, const QString &description, QWidget 
     logText("Automaton " + name + " initialized");
 
     // input handling
-    connect(ui->inEdit, &QLineEdit::returnPressed, this, &MainWindow::handleInput);
-}
-
-// constructor for loading automaton from file
-MainWindow::MainWindow(const JsonAutomaton &automaton, QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
-{
-    ui->setupUi(this);
-    setAcceptDrops(false);
-    ui->listWidget->setDragEnabled(false); // drag off
-    ui->graphicsView->viewport()->setAcceptDrops(false); // drop off
-
-    initScene();
-
-    initializeControlWidget();
-    ui->nameDesc->setText(automaton.name + " - " + automaton.description);
-    logText("Loaded automaton: " + automaton.name);
-
-    buildStatesFromLoaded(automaton.stateList);
-    buildTransitionsFromLoaded(automaton.transitionList);
+    connect(ui->inValue, &QLineEdit::returnPressed, this, &MainWindow::handleInput);
 }
 
 // build states from loaded file
@@ -98,6 +80,7 @@ void MainWindow::buildStatesFromLoaded(const QList<JsonState> &states)
     }
 }
 
+// build transition from loaded file
 void MainWindow::buildTransitionsFromLoaded(const QList<JsonTransition> &transitions)
 {
     for (const JsonTransition &transition : transitions)
@@ -124,17 +107,61 @@ void MainWindow::buildTransitionsFromLoaded(const QList<JsonTransition> &transit
 }
 
 // New slot to handle input
-void MainWindow::handleInput()
-{
-    QString input = ui->inEdit->text().trimmed();
-    if (input.isEmpty()) {
-        QMessageBox::warning(this, "Error", "Input cannot be empty");
+void MainWindow::handleInput() {
+    if (!simulationStart)
+    {
+        QMessageBox::warning(this, "Warning", "Simulation has not started yet!\nStart the simulation first");
         return;
     }
 
-    lastInput = input;
-    logText("Input received: " + input);
-    ui->inEdit->clear();
+    QString input = ui->inDropdown->currentText().trimmed();
+    QString value = ui->inValue->text().trimmed();
+
+    if (input.isEmpty() || value.isEmpty()) {
+        QMessageBox::warning(this, "Error", "Input or value is empty");
+        return;
+    }
+
+    machine.processInput(input.toStdString(), value.toStdString());
+
+    int index = machine.getCurrentState();
+    updateState(index);
+
+    // Update state highlight when delay is triggered
+    machine.autoTransition = [this](int index)
+    {
+        QMetaObject::invokeMethod(this, [this, index]()
+        {
+            updateState(index);
+            const auto &states = machine.getStates();
+            if (index >= 0 && index < static_cast<int>(states.size()))
+            {
+                QString stateName = QString::fromStdString(states[index].name);
+                logText("DELAY, moving to state: " + stateName);
+            }
+        }, Qt::QueuedConnection);
+    };
+
+    ui->inValue->clear();
+
+    ui->outValue->appendPlainText(QString::fromStdString(machine.getCurrentOutput()));
+}
+
+// update highlight to the next state
+void MainWindow::updateState(int currentStateIndex)
+{
+    const auto &states = machine.getStates();
+    if (currentStateIndex >= 0 && currentStateIndex < static_cast<int>(states.size()))
+    {
+        QString stateName = QString::fromStdString(states[currentStateIndex].name);
+        if (stateItems.contains(stateName))
+        {
+            clearHighlight(currentState);
+            currentState = stateItems[stateName];
+            highlightState(currentState);
+            logText("Moved to state: " + stateName);
+        }
+    }
 }
 
 // each action is logged with number, date and description
@@ -171,7 +198,10 @@ void MainWindow::startSimulation()
         logText("Simulation resumed with current state: " + stateItems.key(currentState));
     }
 
-    // TODO: DOKONOCIT SIMULACIU
+    simulationStart = true;
+    machine.processStartState();
+    highlightState(currentState);
+
 }
 
 // pause simulation button handling
@@ -188,10 +218,16 @@ void MainWindow::pauseSimulation()
 // clear scene
 void MainWindow::resetSimulation()
 {
+    if (!confirmDialog("Reset scene", "Are you sure you want to clear the scene?"))
+    {
+        return;
+    }
+
     if (currentState) {
         clearHighlight(currentState);
         currentState = nullptr;
     }
+
     scene->clear();
     stateItems.clear();
     transitionItems.clear();
@@ -199,16 +235,12 @@ void MainWindow::resetSimulation()
     logText("Scene cleared");
 }
 
-// go back to start window and start again
-// open dialog with ok and cancel buttons
-// ok pressed -> cancel simulation and open new
-// cancel pressed -> stay
-void MainWindow::cancelSimulation()
+bool MainWindow::confirmDialog(const QString &windowTitle, const QString &dialogLabel)
 {
     QDialog dialog(this);
 
-    dialog.setWindowTitle("Cancel simulation");
-    QLabel *label = new QLabel("Are you sure you want to cancel simulation?", &dialog);
+    dialog.setWindowTitle(windowTitle);
+    QLabel *label = new QLabel(dialogLabel, &dialog);
 
     QPushButton *okButton = new QPushButton("OK", &dialog);
     QPushButton *cancelButton = new QPushButton("Cancel", &dialog);
@@ -226,13 +258,23 @@ void MainWindow::cancelSimulation()
     connect(okButton, &QPushButton::clicked, &dialog, &QDialog::accept);
     connect(cancelButton, &QPushButton::clicked, &dialog, &QDialog::reject);
 
-    if (dialog.exec() == QDialog::Accepted) {
-        StartupWindow *startWindow = new StartupWindow(); // start window
-        startWindow->show();
-        this->close(); // close this window
-    } else {
+    return dialog.exec() == QDialog::Accepted;
+}
+
+// go back to start window and start again
+// open dialog with ok and cancel buttons
+// ok pressed -> cancel simulation and open new
+// cancel pressed -> stay
+void MainWindow::cancelSimulation()
+{
+    if (!confirmDialog("Cancel Simulation", "Are you sure you want to cancel simulation?"))
+    {
         return;
     }
+
+    StartupWindow *startWindow = new StartupWindow();
+    startWindow->show();
+    this->close();
 }
 
 // create new state and add it to the scene
@@ -408,9 +450,9 @@ void MainWindow::setTransitionLabel(const QString &transitionName, StateItem *fr
 
     // Create unique identifier for this transition
     QString uniqueId = QString("%1_%2_%3").arg(transitionName).arg((quintptr)from).arg((quintptr)to);
-    
+
     t.name = transitionName;
-    
+
     // Use the unique ID as the map key
     transitionItems.insert(uniqueId, t);
 }
@@ -420,7 +462,7 @@ void MainWindow::updateTransitions()
 {
     for (auto it = transitionItems.begin(); it != transitionItems.end(); ++it) {
         Transition &t = it.value();
-        
+
         QString transitionName = t.name;
 
         scene->removeItem(t.path);
@@ -530,7 +572,7 @@ void MainWindow::handleDropEvent(QDropEvent *event)
                 QPointF pos = center + offset;
                 t.label->setPos(pos.x() - t.label->boundingRect().width() / 2, pos.y() - t.label->boundingRect().height() / 2);
             }
-            
+
             t.name = transitionName;
 
             // Creates unique ID
@@ -604,15 +646,13 @@ void MainWindow::clearHighlight(StateItem *state)
 // Load automaton from MooreMachine JSON file
 void MainWindow::loadAutomatonFromMooreMachine(const QString &filename)
 {
-    MooreMachine machine;
-    
     machine.loadFromJSONFile(filename.toStdString());
-    
+
     // Convert to JsonAutomaton structure
     JsonAutomaton automaton;
     automaton.name = QString::fromStdString(machine.getMachineName());
     automaton.description = QString::fromStdString(machine.getMachineDescription());
-    
+
     // Convert states
     QList<JsonState> states;
     const auto& machineStates = machine.getStates();
@@ -624,7 +664,7 @@ void MainWindow::loadAutomatonFromMooreMachine(const QString &filename)
         states.append(jsonState);
     }
     automaton.stateList = states;
-    
+
     // Convert transitions
     QList<JsonTransition> transitions;
     for (size_t i = 0; i < machineStates.size(); i++) {
@@ -633,22 +673,29 @@ void MainWindow::loadAutomatonFromMooreMachine(const QString &filename)
             JsonTransition jsonTransition;
             jsonTransition.fromName = QString::fromStdString(state.name);
             jsonTransition.toName = QString::fromStdString(machineStates[nextStateIdx].name);
-            
+
             // Create name for the transition
             QString transName = QString::fromStdString(transExpr.inputEvent);
             if (!transExpr.boolExpr.empty()) {
                 transName += "[" + QString::fromStdString(transExpr.boolExpr) + "]";
             }
             jsonTransition.name = transName;
-            
+
             transitions.append(jsonTransition);
         }
     }
+
     automaton.transitionList = transitions;
-    
+
     ui->nameDesc->setText(automaton.name + " - " + automaton.description);
     logText("Loaded automaton: " + automaton.name);
-    
+
+    // Get inputs from machine
+    vector<string> inputs = machine.getInputs();
+    for (const string &s : inputs) {
+        ui->inDropdown->addItem(QString::fromStdString(s));
+    }
+
     buildStatesFromLoaded(automaton.stateList);
     buildTransitionsFromLoaded(automaton.transitionList);
 }
@@ -657,7 +704,7 @@ void MainWindow::loadAutomatonFromMooreMachine(const QString &filename)
 void MainWindow::openFileHandler()
 {
     QString filename = QFileDialog::getOpenFileName(this, tr("Open Automaton"), "", tr("JSON Files (*.json)"));
-        
+
     if (!filename.isEmpty()) {
         resetSimulation();
         loadAutomatonFromMooreMachine(filename);
