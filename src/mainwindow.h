@@ -28,33 +28,11 @@
 #include "startWindow.h"
 #include "stateitem.h"
 #include "MooreMachine.h"
+#include "fileParser.h"
 
 #define PI 3.14159
 
 using namespace std;
-
-/**
- * TODO: TOTO URCITE PREROBIT, NECH VYUZAVIME LEM Z MOOREMACHINE.h
- * 
- * ESTE PRI VYTVARANI VLASTNEHO AUTOMATU TREBA PREPOJIT
- */
-struct JsonState {
-    QString name;
-    bool isInitial = false;
-};
-
-struct JsonTransition {
-    QString name;
-    QString fromName;
-    QString toName;
-};
-
-struct JsonAutomaton {
-    QString name;
-    QString description;
-    QList<JsonState> stateList;
-    QList<JsonTransition> transitionList;
-};
 
 struct Transition {
     StateItem *from_state;

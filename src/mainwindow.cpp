@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QDebug>
+#include "fileParser.h"
 
 /* TODO - prechod aaa a->a a potom aaa a->b chyba; simulaciu
         - z vytvoreneho automatu vygenerovat json
@@ -740,47 +741,10 @@ void MainWindow::clearHighlight(StateItem *state)
 // Load automaton from MooreMachine JSON file
 void MainWindow::loadAutomatonFromMooreMachine(const QString &filename)
 {
-    machine.loadFromJSONFile(filename.toStdString());
+    // Use FileParser to load the automaton
+    JsonAutomaton automaton = FileParser::loadAutomatonFromMooreMachine(filename, machine);
 
-    // Convert to JsonAutomaton structure
-    JsonAutomaton automaton;
-    automaton.name = QString::fromStdString(machine.getMachineName());
-    automaton.description = QString::fromStdString(machine.getMachineDescription());
-
-    // Convert states
-    QList<JsonState> states;
-    const auto& machineStates = machine.getStates();
-    for (size_t i = 0; i < machineStates.size(); i++) {
-        const auto& state = machineStates[i];
-        JsonState jsonState;
-        jsonState.name = QString::fromStdString(state.name);
-        jsonState.isInitial = (i == static_cast<size_t>(machine.getStartState()));
-        states.append(jsonState);
-    }
-    automaton.stateList = states;
-
-    // Convert transitions
-    QList<JsonTransition> transitions;
-    for (size_t i = 0; i < machineStates.size(); i++) {
-        const auto& state = machineStates[i];
-        for (const auto& [transExpr, nextStateIdx] : state.transitions) {
-            JsonTransition jsonTransition;
-            jsonTransition.fromName = QString::fromStdString(state.name);
-            jsonTransition.toName = QString::fromStdString(machineStates[nextStateIdx].name);
-
-            // Create name for the transition
-            QString transName = QString::fromStdString(transExpr.inputEvent);
-            if (!transExpr.boolExpr.empty()) {
-                transName += "[" + QString::fromStdString(transExpr.boolExpr) + "]";
-            }
-            jsonTransition.name = transName;
-
-            transitions.append(jsonTransition);
-        }
-    }
-
-    automaton.transitionList = transitions;
-
+    // Update UI with automaton details
     ui->nameDesc->setText(automaton.name + " - " + automaton.description);
     logText("Loaded automaton: " + automaton.name);
 
@@ -790,6 +754,7 @@ void MainWindow::loadAutomatonFromMooreMachine(const QString &filename)
         ui->inDropdown->addItem(QString::fromStdString(s));
     }
 
+    // Build states and transitions from the loaded automaton
     buildStatesFromLoaded(automaton.stateList);
     buildTransitionsFromLoaded(automaton.transitionList);
 }
