@@ -18,14 +18,19 @@ SOURCES += \
     fileParser.cpp \
     stateManager.cpp \
     transitionManager.cpp \
+    dialogsManager.cpp
 
 HEADERS += \
+    dialogsManager.h \
     mainwindow.h \
     startWindow.h \
     stateitem.h \
     CodeExecutor.h \
     MooreMachine.h \
     Structs.h \
+    fileParser.h \
+    stateManager.h \
+    transitionManager.h \
     json.hpp
 
 FORMS += \
@@ -39,3 +44,5 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 RESOURCES += \
     res.qrc
+
+DISTFILES +=

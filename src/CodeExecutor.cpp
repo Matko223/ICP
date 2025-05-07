@@ -1,10 +1,16 @@
+/**
+ * @file CodeExecutor.cpp
+ * @brief Implementation of the CodeExecutor class
+ * @author Tomáš Šedo (xsedot00)
+*/
+
 #include <iostream>
 #include <unordered_map>
 #include <string>
 #include <vector>
 #include "CodeExecutor.h"
-using namespace std;
 
+using namespace std;
 
 CodeExecutor::CodeExecutor(MooreMachine& mooreMachine, const string& stateExpr, const string& transitionExpr, const string& inputName, const string& inputValue)
     : mooreMachine(mooreMachine), stateExpr(stateExpr), transitionExpr(transitionExpr), inputName(inputName), inputValue(inputValue) {};

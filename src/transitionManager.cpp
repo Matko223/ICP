@@ -1,6 +1,7 @@
 /**
  * @file transitionManager.cpp
- * @brief Implementation of the TransitionManager class.
+ * @brief Implementation of the TransitionManager class, where transition is created
+ * @author Róbert Páleš (xpalesr00), Martin Valapka (xvalapm00)
  */
 
 #include "transitionManager.h"

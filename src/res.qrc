@@ -4,5 +4,6 @@
         <file>pauseButton.png</file>
         <file>playButton.png</file>
         <file>restartButton.png</file>
+        <file>deleteButton.png</file>
     </qresource>
 </RCC>

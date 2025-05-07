@@ -1,3 +1,9 @@
+/**
+ * @file startWindow.cpp
+ * @brief Implementation of StartupWindow class, where user can decide to create an automaton or load existing one from JSON file
+ * @author Róbert Páleš (xpalesr00), Martin Valapka (xvalapm00)
+*/
+
 #include "startWindow.h"
 #include "mainwindow.h"
 #include "MooreMachine.h"

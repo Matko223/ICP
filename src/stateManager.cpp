@@ -1,6 +1,7 @@
 /**
  * @file stateManager.cpp
- * @brief Implementation of the StateManager class.
+ * @brief Implementation of the StateManager class, where the state is created
+ * @author Róbert Páleš (xpalesr00), Martin Valapka (xvalapm00)
  */
 
 #include "stateManager.h"

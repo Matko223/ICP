@@ -1,3 +1,9 @@
+/**
+ * @file structs.h
+ * @brief Helper structs
+ * @author Tomáš Šedo (xsedot00)
+*/
+
 #ifndef STRUCTS_H
 #define STRUCTS_H
 #pragma once

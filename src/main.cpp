@@ -1,3 +1,9 @@
+/**
+ * @file main.cpp
+ * @brief Main function
+ * @author Róbert Páleš (xpalesr00)
+ */
+
 #include <QApplication>
 #include "startWindow.h"
 

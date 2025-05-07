@@ -71,13 +71,13 @@
       <rect>
        <x>0</x>
        <y>10</y>
-       <width>141</width>
+       <width>151</width>
        <height>31</height>
       </rect>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
-       <widget class="QPushButton" name="startButton">
+       <widget class="QPushButton" name="startSimulation">
         <property name="maximumSize">
          <size>
           <width>25</width>
@@ -100,7 +100,7 @@ image: url(:/playButton.png);</string>
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="pauseButton">
+       <widget class="QPushButton" name="pauseSimulation">
         <property name="maximumSize">
          <size>
           <width>25</width>
@@ -111,8 +111,8 @@ image: url(:/playButton.png);</string>
          <bool>false</bool>
         </property>
         <property name="styleSheet">
-         <string notr="true">background-color: rgb(0, 85, 255);
-image: url(:/pauseButton.png);</string>
+         <string notr="true">image: url(:/pauseButton.png);
+background-color: rgb(255, 0, 0);</string>
         </property>
         <property name="text">
          <string/>
@@ -123,7 +123,30 @@ image: url(:/pauseButton.png);</string>
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="resetButton">
+       <widget class="QPushButton" name="resetSimulation">
+        <property name="minimumSize">
+         <size>
+          <width>25</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>25</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">image: url(:/restartButton.png);
+background-color: rgb(0, 170, 255);</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="deleteButton">
         <property name="maximumSize">
          <size>
           <width>25</width>
@@ -135,7 +158,7 @@ image: url(:/pauseButton.png);</string>
         </property>
         <property name="styleSheet">
          <string notr="true">background-color: rgb(255, 255, 255);
-image: url(:/restartButton.png);</string>
+image: url(:/deleteButton.png);</string>
         </property>
         <property name="text">
          <string/>
@@ -178,6 +201,18 @@ image: url(:/cancelButton.png);</string>
        <width>100</width>
        <height>30</height>
       </rect>
+     </property>
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>100</width>
+       <height>0</height>
+      </size>
      </property>
      <property name="maximumSize">
       <size>

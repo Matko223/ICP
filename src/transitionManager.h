@@ -1,6 +1,7 @@
 /**
  * @file transitionManager.h
- * @brief Header file for the TransitionManager class.
+ * @brief Header file for the TransitionManager class
+ * @author Róbert Páleš (xpalesr00), Martin Valapka (xvalapm00)
  */
 
  #ifndef TRANSITIONMANAGER_H

@@ -1,3 +1,9 @@
+/**
+ * @file MooreMachine.cpp
+ * @brief Implementation of the MooreMachine class for simulation of the automaton
+ * @author Tomáš Šedo (xsedot00)
+*/
+
 #include <iostream>
 #include <vector>
 #include <string>
@@ -9,6 +15,7 @@
 #include <fstream>
 #include <thread>
 #include <chrono>
+
 using namespace std;
 
 void MooreMachine::dfs(int state, unordered_set<int>& visited) {
@@ -242,7 +249,6 @@ void MooreMachine::processInput(const string& inputName, const string& inputValu
                 if (expr.boolExpr != "") {
                     // Returns bool to know if we can do the transition
                     bool transitionByBool = executor.executeTransitionBoolExpr();
-
                     // If the transition is possible we move to the next state and do the next state action
                     if (transitionByBool) {
                         // Check if there is delay active for the current state, if so then interrupt delay because we can transition to next state

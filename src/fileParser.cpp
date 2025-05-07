@@ -1,6 +1,7 @@
 /**
  * @file fileParser.cpp
- * @brief Implementation of the FileParser class.
+ * @brief Implementation of the FileParser class
+ * @author Martin Valapka (xvalapm00)
  */
 
 #include "fileParser.h"

@@ -1,41 +1,34 @@
+/**
+ * @file mainwindow.h
+ * @brief Header file for the MainWindow class
+ * @author Róbert Páleš (xpalesr00)
+*/
+
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
 #include <QDateTime>
-#include <QDockWidget>
 #include <QDrag>
 #include <QDragEnterEvent>
 #include <QDragMoveEvent>
 #include <QDropEvent>
 #include <QFileDialog>
-#include <QGraphicsPathItem>
-#include <QGraphicsPolygonItem>
 #include <QGraphicsScene>
-#include <QGraphicsTextItem>
-#include <QGraphicsView>
-#include <QHBoxLayout>
-#include <QInputDialog>
-#include <QLabel>
 #include <QMainWindow>
-#include <QMap>
 #include <QMessageBox>
 #include <QMimeData>
-#include <QPushButton>
-#include <QRadioButton>
-#include <QTextEdit>
-#include <QVBoxLayout>
-#include <QtMath>
+#include "startWindow.h"
 #include "startWindow.h"
 #include "stateitem.h"
 #include "MooreMachine.h"
 #include "fileParser.h"
 #include "stateManager.h"
 #include "transitionManager.h"
+#include "dialogsManager.h"
 
 #define PI 3.14159
 
 using namespace std;
-
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -49,10 +42,10 @@ class MainWindow : public QMainWindow
 
 public:
     explicit MainWindow(const QString &name, const QString &description, QWidget *parent = nullptr);
-    explicit MainWindow(const JsonAutomaton &automaton, QWidget *parent = nullptr);
-    explicit MainWindow(const QString &jsonFilePath, QWidget *parent = nullptr);
+
     void initScene();
     void logText(QString str);
+    void addNewVariable();
 
     void buildStatesFromLoaded(const QList<JsonState> &states);
     void buildTransitionsFromLoaded(const QList<JsonTransition> &transitions);
@@ -60,27 +53,33 @@ public:
     void initializeControlWidget();
     void startSimulation();
     void pauseSimulation();
-    void cancelSimulation();
     void resetSimulation();
-    bool confirmDialog(const QString &windowTitle, const QString &dialogLabel);
+    void cancelWindow();
+    void deleteScene();
 
     StateItem *createState(QPointF position);
-    bool createStateDialog(QString &stateName, QString &outputExpr);
 
-    bool createTransitionDialog(QString &transitionName, QString &fromState, QString &toState, QString &inputEvent, QString &boolExpr, QString &delay);
+    void setStateLabel(QString stateName, StateItem *state);
+
     void setTransitionLabel(const QString &name, StateItem *from, StateItem *to, QGraphicsPathItem *pathItem, const QPainterPath &path);
 
     void handleDropEvent(QDropEvent *event);
+
     bool eventFilter(QObject *obj, QEvent *event) override;
+
     void initDrag();
-    void setStateLabel(QString stateName, StateItem *state);
+
     void highlightState(StateItem *state);
+
     void clearHighlight(StateItem *state);
 
     void loadAutomatonFromMooreMachine(const QString &filename);
+
     void openFileHandler();
 
     void updateState(int currentStateIndex);
+
+    void generateJson();
 
     ~MainWindow();
 

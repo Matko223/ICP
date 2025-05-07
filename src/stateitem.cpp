@@ -1,3 +1,9 @@
+/**
+ * @file stateItem.cpp
+ * @brief Implementation of the StateItem class
+ * @author Martin Valapka (xvalapm00)
+ */
+
 #include "stateitem.h"
 #include <QGraphicsScene>
 #include <QDebug>

@@ -1,3 +1,9 @@
+/**
+ * @file MooreMachine.h
+ * @brief Header file for the MooreMachine class
+ * @author Tomáš Šedo (xsedot00)
+*/
+
 #ifndef MOORE_MACHINE_H
 #define MOORE_MACHINE_H
 #pragma once

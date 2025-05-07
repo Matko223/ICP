@@ -1,11 +1,13 @@
+/**
+ * @file mainwindow.cpp
+ * @brief Implementation of MainWindow class, which is the hearth of GUI
+ * @author Róbert Páleš (xpalesr00), Martin Valapka (xvalapm00)
+*/
+
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include <QDebug>
 
-/* TODO - prechod aaa a->a a potom aaa a->b chyba; simulaciu
-        - z vytvoreneho automatu vygenerovat json
-        - dekompozicia trochu lebo je v tom border uz
-*/
+// TODO - prechod aaa a->a a potom aaa a->b chyba
 
 // initialize scene
 void MainWindow::initScene()
@@ -50,18 +52,20 @@ MainWindow::MainWindow(const QString &name, const QString &description, QWidget 
     connect(scene, &QGraphicsScene::changed, this, &MainWindow::updateTransitions);
     ui->nameDesc->setText(name + " - " + description);
     initializeControlWidget();
-    logText("Automaton " + name + " initialized");
 
-    // input handling
+    // Connect add new variable button
+    connect(ui->addVar, &QPushButton::clicked, this , &MainWindow::addNewVariable);
+
+    // Input handling
     connect(ui->inValue, &QLineEdit::returnPressed, this, &MainWindow::handleInput);
 }
 
 // Build states from loaded file
-void MainWindow::buildStatesFromLoaded(const QList<JsonState>& states) {
+void MainWindow::buildStatesFromLoaded(const QList<JsonState> &states) {
     StateManager::loadStates(scene, stateItems, currentState, states);
 }
 
-// build transition from loaded file
+// Build transition from loaded file
 void MainWindow::buildTransitionsFromLoaded(const QList<JsonTransition> &transitions)
 {
     TransitionManager::buildTransitionsFromLoaded(scene, stateItems, transitionItems, transitions,[this](const QString& message) { 
@@ -110,7 +114,7 @@ void MainWindow::handleInput() {
     ui->outValue->appendPlainText(QString::fromStdString(machine.getCurrentOutput()));
 }
 
-// update highlight to the next state
+// Update highlight to the next state
 void MainWindow::updateState(int currentStateIndex)
 {
     const auto& states = machine.getStates();
@@ -123,7 +127,7 @@ void MainWindow::updateState(int currentStateIndex)
     }
 }
 
-// each action is logged with number, date and description
+// Each action is logged with number, date and description
 void MainWindow::logText(QString str)
 {
     QString timestamp = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
@@ -131,16 +135,18 @@ void MainWindow::logText(QString str)
     logCounter++;
 }
 
-// connect control widget buttons
+// Connect control widget buttons
 void MainWindow::initializeControlWidget()
 {
-    connect(ui->startButton, &QPushButton::clicked, this, &MainWindow::startSimulation);
-    connect(ui->pauseButton, &QPushButton::clicked, this, &MainWindow::pauseSimulation);
-    connect(ui->resetButton, &QPushButton::clicked, this, &MainWindow::resetSimulation);
-    connect(ui->cancelButton, &QPushButton::clicked, this, &MainWindow::cancelSimulation);
+    connect(ui->startSimulation, &QPushButton::clicked, this, &MainWindow::startSimulation);
+    connect(ui->pauseSimulation, &QPushButton::clicked, this, &MainWindow::pauseSimulation);
+    connect(ui->deleteButton, &QPushButton::clicked, this, &MainWindow::deleteScene);
+    connect(ui->cancelButton, &QPushButton::clicked, this, &MainWindow::cancelWindow);
+    connect(ui->resetSimulation, &QPushButton::clicked, this, &MainWindow::resetSimulation);
+    connect(ui->generateJson, &QPushButton::clicked, this, &MainWindow::generateJson);
 }
 
-// start simulation button handling
+// Start simulation button handling
 void MainWindow::startSimulation()
 {
     if (stateItems.isEmpty()) {
@@ -162,7 +168,7 @@ void MainWindow::startSimulation()
     highlightState(currentState);
 }
 
-// pause simulation button handling
+// Pause simulation button handling
 void MainWindow::pauseSimulation()
 {
     if (currentState) {
@@ -172,11 +178,38 @@ void MainWindow::pauseSimulation()
     }
 }
 
-// reset simulation
-// clear scene and all text fields
 void MainWindow::resetSimulation()
 {
-    if (!confirmDialog("Reset scene", "Are you sure you want to clear the scene?"))
+    if (currentState)
+    {
+        clearHighlight(currentState);
+        currentState = nullptr;
+    }
+
+    machine.interruptDelay();
+    ui->outValue->clear();
+    simulationStart = false;
+    machine.setInitialOutput();
+    machine.processStartState();
+
+    const auto &states = machine.getStates();
+    int startIndex = machine.getStartState();
+    if (startIndex >= 0 && startIndex < static_cast<int>(states.size())) {
+        QString stateName = QString::fromStdString(states[startIndex].name);
+        if (stateItems.contains(stateName)) {
+            currentState = stateItems[stateName];
+            highlightState(currentState);
+        }
+    }
+
+    logText("Simulation reset");
+}
+
+// reset simulation
+// clear scene and all text fieldse
+void MainWindow::deleteScene()
+{
+    if (!DialogManager::confirmDialog(this, "Reset scene", "Are you sure you want to clear the scene?"))
     {
         return;
     }
@@ -188,46 +221,32 @@ void MainWindow::resetSimulation()
 
     scene->clear();
     ui->outValue->clear();
+    ui->varValue->clear();
     stateItems.clear();
     transitionItems.clear();
-    lastInput.clear();
+    lastInput.clear(); // Clear lastInput on reset
     logText("Scene cleared");
 }
 
-// open dialog with ok and cancel buttons
-bool MainWindow::confirmDialog(const QString &windowTitle, const QString &dialogLabel)
+// Button for adding new variable
+void MainWindow::addNewVariable()
 {
-    QDialog dialog(this);
-
-    dialog.setWindowTitle(windowTitle);
-    QLabel *label = new QLabel(dialogLabel, &dialog);
-
-    QPushButton *okButton = new QPushButton("OK", &dialog);
-    QPushButton *cancelButton = new QPushButton("Cancel", &dialog);
-
-    QHBoxLayout *buttonLayout = new QHBoxLayout;
-    buttonLayout->addWidget(okButton);
-    buttonLayout->addWidget(cancelButton);
-
-    QVBoxLayout *layout = new QVBoxLayout;
-    layout->addWidget(label);
-    layout->addLayout(buttonLayout);
-
-    dialog.setLayout(layout);
-
-    connect(okButton, &QPushButton::clicked, &dialog, &QDialog::accept);
-    connect(cancelButton, &QPushButton::clicked, &dialog, &QDialog::reject);
-
-    return dialog.exec() == QDialog::Accepted;
+    QString type, name, value;
+    if (DialogManager::createVariableDialog(this, type, name, value))
+    {
+        machine.addVariable(type.toStdString(), name.toStdString(), value.toStdString());
+        ui->varValue->appendPlainText(type + " " + name + " = " + value);
+        logText("Added new variable: " + name);
+    }
 }
 
 // go back to start window and start again
 // open dialog with ok and cancel buttons
 // ok pressed -> cancel simulation and open new
 // cancel pressed -> stay
-void MainWindow::cancelSimulation()
+void MainWindow::cancelWindow()
 {
-    if (!confirmDialog("Cancel Simulation", "Are you sure you want to cancel simulation?"))
+    if (!DialogManager::confirmDialog(this, "Cancel Simulation", "Are you sure you want to cancel simulation?"))
     {
         return;
     }
@@ -237,136 +256,22 @@ void MainWindow::cancelSimulation()
     this->close();
 }
 
-// Create a new state
-StateItem* MainWindow::createState(QPointF position) {
+// create new state and add it to the scene
+// distinguish between normal and final state
+// Create state using StateItem
+StateItem *MainWindow::createState(QPointF position)
+{
     return StateManager::createState(scene, position);
 }
 
-// transition dialog
-// user enters transition name, from state and to state
-// confirm with ok button, cancel with cancel button
-bool MainWindow::createTransitionDialog(QString &transitionName, QString &fromState, QString &toState, QString &inputEvent, QString &boolExpr, QString &delay)
-{
-    QDialog dialog(this);
-    dialog.setWindowTitle("Create transition");
 
-    QVBoxLayout *layout = new QVBoxLayout(&dialog);
-
-    QLineEdit *nameOfTransition = new QLineEdit(&dialog);
-    nameOfTransition->setPlaceholderText("Enter transition name");
-
-    QLineEdit *fromStateTransition = new QLineEdit(&dialog);
-    fromStateTransition->setPlaceholderText("Enter from state");
-
-    QLineEdit *toStateTransition = new QLineEdit(&dialog);
-    toStateTransition->setPlaceholderText("Enter to state");
-
-    QLineEdit *inputEventEdit = new QLineEdit(&dialog);
-    inputEventEdit->setPlaceholderText("Enter input event (in)");
-
-    QLineEdit *boolExprEdit = new QLineEdit(&dialog);
-    boolExprEdit->setPlaceholderText("Enter condition (atoi(valueof(\"in\")) == expr)");
-
-    QLineEdit *delayEdit = new QLineEdit(&dialog);
-    delayEdit->setPlaceholderText("Enter delay (timeout)");
-
-    QPushButton *okButton = new QPushButton("OK", &dialog);
-    QPushButton *cancelButton = new QPushButton("Cancel", &dialog);
-
-    QHBoxLayout *buttonLayout = new QHBoxLayout;
-    buttonLayout->addWidget(okButton);
-    buttonLayout->addWidget(cancelButton);
-
-    layout->addWidget(new QLabel("Transition name"));
-    layout->addWidget(nameOfTransition);
-    layout->addWidget(new QLabel("Start state"));
-    layout->addWidget(fromStateTransition);
-    layout->addWidget(new QLabel("End state"));
-    layout->addWidget(toStateTransition);
-    layout->addWidget(new QLabel("Input Event:"));
-    layout->addWidget(inputEventEdit);
-    layout->addWidget(new QLabel("Condition (optional):"));
-    layout->addWidget(boolExprEdit);
-    layout->addWidget(new QLabel("Delay (optional):"));
-    layout->addWidget(delayEdit);
-    layout->addLayout(buttonLayout);
-
-    dialog.setMinimumWidth(260);
-    connect(okButton, &QPushButton::clicked, &dialog, &QDialog::accept);
-    connect(cancelButton, &QPushButton::clicked, &dialog, &QDialog::reject);
-
-    // if the transition is accepted return all values
-    if (dialog.exec() == QDialog::Accepted) {
-        transitionName = nameOfTransition->text();
-        fromState = fromStateTransition->text();
-        toState = toStateTransition->text();
-        inputEvent = inputEventEdit->text();
-        boolExpr = boolExprEdit->text();
-        delay = delayEdit->text();
-
-        if (transitionName.isEmpty() || fromState.isEmpty() || toState.isEmpty()) {
-            QMessageBox::warning(this, "Error", "Empty transition(s)");
-            return false;
-        }
-
-        return true;
-    } else {
-        return false;
-    }
-}
-
-bool MainWindow::createStateDialog(QString &stateName, QString &outputExpr)
-{
-    QDialog dialog(this);
-    dialog.setWindowTitle("Create State");
-
-    QVBoxLayout *layout = new QVBoxLayout(&dialog);
-
-    QLineEdit *nameEdit = new QLineEdit(&dialog);
-    nameEdit->setPlaceholderText("Enter state name");
-
-    QLineEdit *outputEdit = new QLineEdit(&dialog);
-    outputEdit->setPlaceholderText("Enter output expression { output(\"out\", expr }");
-
-    QPushButton *okButton = new QPushButton("OK", &dialog);
-    QPushButton *cancelButton = new QPushButton("Cancel", &dialog);
-
-    QHBoxLayout *buttonLayout = new QHBoxLayout;
-    buttonLayout->addWidget(okButton);
-    buttonLayout->addWidget(cancelButton);
-
-    layout->addWidget(new QLabel("State Name:"));
-    layout->addWidget(nameEdit);
-    layout->addWidget(new QLabel("Output Expression:"));
-    layout->addWidget(outputEdit);
-    layout->addLayout(buttonLayout);
-
-    dialog.setLayout(layout);
-    dialog.setMinimumWidth(260);
-
-    connect(okButton, &QPushButton::clicked, &dialog, &QDialog::accept);
-    connect(cancelButton, &QPushButton::clicked, &dialog, &QDialog::reject);
-
-    if (dialog.exec() == QDialog::Accepted) {
-        stateName = nameEdit->text();
-        outputExpr = outputEdit->text();
-
-        if (stateName.isEmpty()) {
-            QMessageBox::warning(this, "Error", "State name cannot be empty");
-            return false;
-        }
-
-        return true;
-    } else {
-        return false;
-    }
-}
 
 // Set a label for a state
 void MainWindow::setStateLabel(QString stateName, StateItem* state) {
     StateManager::setStateLabel(stateName, state);
 }
 
+// Set a label for a transition
 void MainWindow::setTransitionLabel(const QString &transitionName, StateItem *from, StateItem *to, QGraphicsPathItem *transition, const QPainterPath &path)
 {
     TransitionManager::setTransitionLabel(scene, transitionName, from, to, transition, path, transitionItems);
@@ -390,10 +295,10 @@ void MainWindow::handleDropEvent(QDropEvent *event)
 
         QString stateName;
         QString outputExpr;
-        if (!createStateDialog(stateName, outputExpr))
+        if (!DialogManager::createStateDialog(this, stateName, outputExpr))
         {
-                delete state;
-                return;
+            delete state;
+            return;
         }
 
         if (stateItems.contains(stateName))
@@ -412,6 +317,7 @@ void MainWindow::handleDropEvent(QDropEvent *event)
         {
              stateIndex = machine.addState(stateName.toStdString(), outputExpr.toStdString(), {});
         }
+
         stateIndexMap[stateName] = stateIndex;
         setStateLabel(stateName, state);
         stateItems[stateName] = state;
@@ -424,7 +330,7 @@ void MainWindow::handleDropEvent(QDropEvent *event)
         }
     } else if (type == "Transition") {
         QString transitionName, fromState, toState, inputEvent, boolExpr, delay;
-        if (createTransitionDialog(transitionName, fromState, toState, inputEvent, boolExpr, delay)) {
+        if (DialogManager::createTransitionDialog(this, transitionName, fromState, toState, inputEvent, boolExpr, delay)) {
             if (!stateItems.contains(fromState) || !stateItems.contains(toState)) {
                 QMessageBox::warning(this, "Error", "State not found.");
                 return;
@@ -445,7 +351,7 @@ void MainWindow::handleDropEvent(QDropEvent *event)
             machine.addTransition(fromIndex, expression.toStdString(), toIndex);
 
             machine.addInputs();
-            ui->inDropdown->clear(); // toto tu musi byt lebo to robi nepekne veci bez toho
+            ui->inDropdown->clear();
 
             // Add input event into dropDown menu
             for (const auto& s : machine.getInputs())
@@ -524,9 +430,24 @@ void MainWindow::loadAutomatonFromMooreMachine(const QString &filename)
     ui->nameDesc->setText(automaton.name + " - " + automaton.description);
     logText("Loaded automaton: " + automaton.name);
 
-    vector<string> inputs = machine.getInputs();
-    for (const string &s : inputs) {
+    // Get all defined inputs
+    for (const string &s : machine.getInputs()) {
         ui->inDropdown->addItem(QString::fromStdString(s));
+    }
+
+    // Get all defined variables
+    for (const auto& var : machine.getVars())
+    {
+        QString variable = QString::fromStdString(var.type + " " + var.name + " = " + var.value);
+         ui->varValue->appendPlainText(variable);
+    }
+
+    // For adding new states and transitions into loaded file
+    stateIndexMap.clear();
+    const auto &states = machine.getStates();
+    for (size_t i = 0; i < states.size(); ++i)
+    {
+        stateIndexMap[QString::fromStdString(states[i].name)] = static_cast<int>(i);
     }
 
     buildStatesFromLoaded(automaton.stateList);
@@ -542,6 +463,19 @@ void MainWindow::openFileHandler()
         resetSimulation();
         loadAutomatonFromMooreMachine(filename);
     }
+}
+
+// Generate json file from actual automaton
+void MainWindow::generateJson()
+{
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Save automaton"), "", tr("JSON Files (*.json)"));
+
+    if (fileName.isEmpty())
+    {
+        return;
+    }
+
+    machine.createJSONFile(fileName.toStdString());
 }
 
 // destructor

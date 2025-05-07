@@ -1,3 +1,9 @@
+/**
+ * @file stateItem.h
+ * @brief Header file for the StateItem class
+ * @author Martin Valapka (xvalapm00)
+ */
+
 #ifndef STATEITEM_H
 #define STATEITEM_H
 

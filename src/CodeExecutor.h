@@ -1,3 +1,9 @@
+/**
+ * @file CodeExecutor.h
+ * @brief Header file for the CodeExecutor class
+ * @author Tomáš Šedo (xsedot00)
+*/
+
 #ifndef CODEEXECUTOR_H
 #define CODEEXECUTOR_H
 #pragma once

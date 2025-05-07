@@ -1,3 +1,9 @@
+/**
+ * @file startWindow.h
+ * @brief Header file for the StartupWindow class
+ * @author Róbert Páleš (xpalesr00)
+*/
+
 #ifndef STARTWINDOW_H
 #define STARTWINDOW_H
 

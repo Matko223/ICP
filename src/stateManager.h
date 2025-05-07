@@ -1,6 +1,7 @@
 /**
  * @file stateManager.h
- * @brief Header file for the StateManager class.
+ * @brief Header file for the StateManager class
+ * @author Martin Valapka (xvalapm00), Róbert Páleš (xpalesr00)
  */
 
 #ifndef STATEMANAGER_H
