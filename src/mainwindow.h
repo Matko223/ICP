@@ -93,8 +93,9 @@ public:
     bool confirmDialog(const QString &windowTitle, const QString &dialogLabel);
 
     StateItem *createState(QPointF position);
+    bool createStateDialog(QString &stateName, QString &outputExpr);
 
-    bool createTransitionDialog(QString &transitionName, QString &fromState, QString &toState);
+    bool createTransitionDialog(QString &transitionName, QString &fromState, QString &toState, QString &inputEvent, QString &boolExpr, QString &delay);
     QPainterPath createTransitionPath(StateItem *from, StateItem *to, QPointF &arrowPos, double &angle);
     void drawArrow(const QPointF &arrowPos, double angle);
     QGraphicsPolygonItem *createArrow(const QPointF &arrowPos, double angle);
@@ -128,6 +129,7 @@ private:
     QString lastInput;
     MooreMachine machine;
     bool simulationStart = false;
+    QMap<QString, int>stateIndexMap;
 };
 
 #endif // MAINWINDOW_H

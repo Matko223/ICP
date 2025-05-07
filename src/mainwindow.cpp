@@ -201,7 +201,6 @@ void MainWindow::startSimulation()
     simulationStart = true;
     machine.processStartState();
     highlightState(currentState);
-
 }
 
 // pause simulation button handling
@@ -215,7 +214,7 @@ void MainWindow::pauseSimulation()
 }
 
 // reset simulation
-// clear scene
+// clear scene and all text fields
 void MainWindow::resetSimulation()
 {
     if (!confirmDialog("Reset scene", "Are you sure you want to clear the scene?"))
@@ -229,6 +228,7 @@ void MainWindow::resetSimulation()
     }
 
     scene->clear();
+    ui->outValue->clear();
     stateItems.clear();
     transitionItems.clear();
     lastInput.clear(); // Clear lastInput on reset
@@ -295,7 +295,7 @@ StateItem *MainWindow::createState(QPointF position)
 // transition dialog
 // user enters transition name, from state and to state
 // confirm with ok button, cancel with cancel button
-bool MainWindow::createTransitionDialog(QString &transitionName, QString &fromState, QString &toState)
+bool MainWindow::createTransitionDialog(QString &transitionName, QString &fromState, QString &toState, QString &inputEvent, QString &boolExpr, QString &delay)
 {
     QDialog dialog(this);
     dialog.setWindowTitle("Create transition");
@@ -311,6 +311,15 @@ bool MainWindow::createTransitionDialog(QString &transitionName, QString &fromSt
     QLineEdit *toStateTransition = new QLineEdit(&dialog);
     toStateTransition->setPlaceholderText("Enter to state");
 
+    QLineEdit *inputEventEdit = new QLineEdit(&dialog);
+    inputEventEdit->setPlaceholderText("Enter input event (in)");
+
+    QLineEdit *boolExprEdit = new QLineEdit(&dialog);
+    boolExprEdit->setPlaceholderText("Enter condition (atoi(valueof(\"in\")) == expr)");
+
+    QLineEdit *delayEdit = new QLineEdit(&dialog);
+    delayEdit->setPlaceholderText("Enter delay (timeout)");
+
     QPushButton *okButton = new QPushButton("OK", &dialog);
     QPushButton *cancelButton = new QPushButton("Cancel", &dialog);
 
@@ -324,15 +333,26 @@ bool MainWindow::createTransitionDialog(QString &transitionName, QString &fromSt
     layout->addWidget(fromStateTransition);
     layout->addWidget(new QLabel("End state"));
     layout->addWidget(toStateTransition);
+    layout->addWidget(new QLabel("Input Event:"));
+    layout->addWidget(inputEventEdit);
+    layout->addWidget(new QLabel("Condition (optional):"));
+    layout->addWidget(boolExprEdit);
+    layout->addWidget(new QLabel("Delay (optional):"));
+    layout->addWidget(delayEdit);
     layout->addLayout(buttonLayout);
 
+    dialog.setMinimumWidth(260);
     connect(okButton, &QPushButton::clicked, &dialog, &QDialog::accept);
     connect(cancelButton, &QPushButton::clicked, &dialog, &QDialog::reject);
 
+    // if the transition is accepted return all values
     if (dialog.exec() == QDialog::Accepted) {
         transitionName = nameOfTransition->text();
         fromState = fromStateTransition->text();
         toState = toStateTransition->text();
+        inputEvent = inputEventEdit->text();
+        boolExpr = boolExprEdit->text();
+        delay = delayEdit->text();
 
         if (transitionName.isEmpty() || fromState.isEmpty() || toState.isEmpty()) {
             QMessageBox::warning(this, "Error", "Empty transition(s)");
@@ -344,6 +364,54 @@ bool MainWindow::createTransitionDialog(QString &transitionName, QString &fromSt
         return false;
     }
 }
+
+bool MainWindow::createStateDialog(QString &stateName, QString &outputExpr)
+{
+    QDialog dialog(this);
+    dialog.setWindowTitle("Create State");
+
+    QVBoxLayout *layout = new QVBoxLayout(&dialog);
+
+    QLineEdit *nameEdit = new QLineEdit(&dialog);
+    nameEdit->setPlaceholderText("Enter state name");
+
+    QLineEdit *outputEdit = new QLineEdit(&dialog);
+    outputEdit->setPlaceholderText("Enter output expression { output(\"out\", expr }");
+
+    QPushButton *okButton = new QPushButton("OK", &dialog);
+    QPushButton *cancelButton = new QPushButton("Cancel", &dialog);
+
+    QHBoxLayout *buttonLayout = new QHBoxLayout;
+    buttonLayout->addWidget(okButton);
+    buttonLayout->addWidget(cancelButton);
+
+    layout->addWidget(new QLabel("State Name:"));
+    layout->addWidget(nameEdit);
+    layout->addWidget(new QLabel("Output Expression:"));
+    layout->addWidget(outputEdit);
+    layout->addLayout(buttonLayout);
+
+    dialog.setLayout(layout);
+    dialog.setMinimumWidth(260);
+
+    connect(okButton, &QPushButton::clicked, &dialog, &QDialog::accept);
+    connect(cancelButton, &QPushButton::clicked, &dialog, &QDialog::reject);
+
+    if (dialog.exec() == QDialog::Accepted) {
+        stateName = nameEdit->text();
+        outputExpr = outputEdit->text();
+
+        if (stateName.isEmpty()) {
+            QMessageBox::warning(this, "Error", "State name cannot be empty");
+            return false;
+        }
+
+        return true;
+    } else {
+        return false;
+    }
+}
+
 
 // create a path between 2 states
 // set an arrow position and rotation angle based on the path
@@ -506,27 +574,32 @@ void MainWindow::handleDropEvent(QDropEvent *event)
     if (type == "State") {
         StateItem *state = createState(position);
 
-        bool ok;
         QString stateName;
-        while (true) {
-            stateName = QInputDialog::getText(this, "New state", "Enter state name", QLineEdit::Normal, "", &ok);
-            if (stateItems.contains(stateName)) {
-                QMessageBox::warning(this, "Error", "Duplicate! Enter new name", QMessageBox::Ok);
-                continue;
-            }
-            if (!ok) {
+        QString outputExpr;
+        if (!createStateDialog(stateName, outputExpr))
+        {
                 delete state;
                 return;
-            }
-            if (stateName.isEmpty()) {
-                QMessageBox::warning(this, "Error", "Name cannot be empty");
-                continue;
-            }
-            break;
         }
 
-        setStateLabel(stateName, state);
+        if (stateItems.contains(stateName))
+        {
+            QMessageBox::warning(this, "Error", "Duplicate state!");
+            delete state;
+            return;
+        }
 
+        int stateIndex;
+        if (machine.getStates().empty())
+        {
+             stateIndex = machine.addStartState(stateName.toStdString(), outputExpr.toStdString(), {});
+        }
+        else
+        {
+             stateIndex = machine.addState(stateName.toStdString(), outputExpr.toStdString(), {});
+        }
+        stateIndexMap[stateName] = stateIndex;
+        setStateLabel(stateName, state);
         stateItems[stateName] = state;
         logText("Added state " + stateName);
 
@@ -536,8 +609,8 @@ void MainWindow::handleDropEvent(QDropEvent *event)
             logText("Set initial state: " + stateName);
         }
     } else if (type == "Transition") {
-        QString transitionName, fromState, toState;
-        if (createTransitionDialog(transitionName, fromState, toState)) {
+        QString transitionName, fromState, toState, inputEvent, boolExpr, delay;
+        if (createTransitionDialog(transitionName, fromState, toState, inputEvent, boolExpr, delay)) {
             if (!stateItems.contains(fromState) || !stateItems.contains(toState)) {
                 QMessageBox::warning(this, "Error", "State not found.");
                 return;
@@ -545,6 +618,27 @@ void MainWindow::handleDropEvent(QDropEvent *event)
 
             StateItem *from = stateItems[fromState];
             StateItem *to = stateItems[toState];
+
+            int fromIndex = stateIndexMap[fromState];
+            int toIndex = stateIndexMap[toState];
+
+            QString expression = inputEvent;
+            if (!boolExpr.isEmpty())
+                  expression += " [ " + boolExpr + " ]";
+            if (!delay.isEmpty())
+                  expression += " @ " + delay;
+
+            machine.addTransition(fromIndex, expression.toStdString(), toIndex);
+
+            machine.addInputs();
+            ui->inDropdown->clear(); // toto tu musi byt lebo to robi nepekne veci bez toho
+
+            // Add input event into dropDown menu
+            for (const auto& s : machine.getInputs())
+            {
+                QString input = QString::fromStdString(s);
+                ui->inDropdown->addItem(input);
+            }
 
             QPointF arrowPos;
             double angle = 0.0;
