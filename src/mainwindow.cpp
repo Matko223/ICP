@@ -1,7 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QDebug>
-#include "fileParser.h"
 
 /* TODO - prechod aaa a->a a potom aaa a->b chyba; simulaciu
         - z vytvoreneho automatu vygenerovat json
@@ -57,28 +56,9 @@ MainWindow::MainWindow(const QString &name, const QString &description, QWidget 
     connect(ui->inValue, &QLineEdit::returnPressed, this, &MainWindow::handleInput);
 }
 
-// build states from loaded file
-void MainWindow::buildStatesFromLoaded(const QList<JsonState> &states)
-{
-    for (const JsonState &state : states)
-    {
-        QPointF position(100 + stateItems.size() * 100, 100); // random distance between
-
-        StateItem *stateItem = createState(position);
-
-        setStateLabel(state.name, stateItem);
-
-        stateItems[state.name] = stateItem;
-
-        logText("Added state: " + state.name);
-
-        if (state.isInitial && !currentState)
-        {
-            currentState = stateItem;
-            highlightState(currentState);
-            logText("Set initial state: " + state.name);
-        }
-    }
+// Build states from loaded file
+void MainWindow::buildStatesFromLoaded(const QList<JsonState>& states) {
+    StateManager::loadStates(scene, stateItems, currentState, states);
 }
 
 // build transition from loaded file
@@ -151,17 +131,13 @@ void MainWindow::handleInput() {
 // update highlight to the next state
 void MainWindow::updateState(int currentStateIndex)
 {
-    const auto &states = machine.getStates();
-    if (currentStateIndex >= 0 && currentStateIndex < static_cast<int>(states.size()))
-    {
+    const auto& states = machine.getStates();
+    if (currentStateIndex >= 0 && currentStateIndex < static_cast<int>(states.size())) {
         QString stateName = QString::fromStdString(states[currentStateIndex].name);
-        if (stateItems.contains(stateName))
-        {
-            clearHighlight(currentState);
-            currentState = stateItems[stateName];
-            highlightState(currentState);
-            logText("Moved to state: " + stateName);
-        }
+
+        StateManager::updateState(stateItems, currentState, stateName, [this](const QString& message) {
+            logText(message);
+        });
     }
 }
 
@@ -232,7 +208,7 @@ void MainWindow::resetSimulation()
     ui->outValue->clear();
     stateItems.clear();
     transitionItems.clear();
-    lastInput.clear(); // Clear lastInput on reset
+    lastInput.clear();
     logText("Scene cleared");
 }
 
@@ -278,19 +254,9 @@ void MainWindow::cancelSimulation()
     this->close();
 }
 
-// create new state and add it to the scene
-// distinguish between normal and final state
-// Create state using StateItem
-StateItem *MainWindow::createState(QPointF position)
-{
-    StateItem *state = new StateItem(0, 0, 50, 50);
-    state->setPos(position);
-
-    state->setPen(QPen(Qt::black));
-    state->setBrush(Qt::transparent);
-
-    scene->addItem(state);
-    return state;
+// Create a new state
+StateItem* MainWindow::createState(QPointF position) {
+    return StateManager::createState(scene, position);
 }
 
 // transition dialog
@@ -455,18 +421,6 @@ QPainterPath MainWindow::createTransitionPath(StateItem *fromState, StateItem *t
     return path;
 }
 
-void MainWindow::drawArrow(const QPointF &arrowPos, double angle)
-{
-    qreal size = 10.0;
-    // control points for arrow drawing
-    QPointF point1 = arrowPos - QPointF(qCos(angle + PI / 6) * size, qSin(angle + PI / 6) * size);
-    QPointF point2 = arrowPos - QPointF(qCos(angle - PI / 6) * size, qSin(angle - PI / 6) * size);
-
-    QPolygonF arrow;
-    arrow << arrowPos << point1 << point2;
-    scene->addPolygon(arrow, QPen(Qt::black), QBrush(Qt::black)); // draw an arrow in the direction of angle
-}
-
 // Create and return arrow for storage in Transition
 QGraphicsPolygonItem *MainWindow::createArrow(const QPointF &arrowPos, double angle)
 {
@@ -478,13 +432,9 @@ QGraphicsPolygonItem *MainWindow::createArrow(const QPointF &arrowPos, double an
     return scene->addPolygon(arrow, QPen(Qt::black), QBrush(Qt::black));
 }
 
-void MainWindow::setStateLabel(QString stateName, StateItem *state)
-{
-    QGraphicsTextItem *label = new QGraphicsTextItem(stateName, state);
-    label->setDefaultTextColor(Qt::black);
-    QRectF rect = state->rect();
-    QRectF labelRect = label->boundingRect();
-    label->setPos(rect.width() / 2 - labelRect.width() / 2, rect.height() / 2 - labelRect.height() / 2);
+// Set a label for a state
+void MainWindow::setStateLabel(QString stateName, StateItem* state) {
+    StateManager::setStateLabel(stateName, state);
 }
 
 void MainWindow::setTransitionLabel(const QString &transitionName, StateItem *from, StateItem *to, QGraphicsPathItem *transition, const QPainterPath &path)
@@ -721,40 +671,28 @@ void MainWindow::initDrag()
 }
 
 // Highlight a state
-void MainWindow::highlightState(StateItem *state)
-{
-    if (state) {
-        state->setBrush(QBrush(Qt::yellow));
-        state->update();
-    }
+void MainWindow::highlightState(StateItem* state) {
+    StateManager::highlightState(state);
 }
 
 // Clear highlight from a state
-void MainWindow::clearHighlight(StateItem *state)
-{
-    if (state) {
-        state->setBrush(Qt::transparent);
-        state->update();
-    }
+void MainWindow::clearHighlight(StateItem* state) {
+    StateManager::clearHighlight(state);
 }
 
 // Load automaton from MooreMachine JSON file
 void MainWindow::loadAutomatonFromMooreMachine(const QString &filename)
 {
-    // Use FileParser to load the automaton
     JsonAutomaton automaton = FileParser::loadAutomatonFromMooreMachine(filename, machine);
 
-    // Update UI with automaton details
     ui->nameDesc->setText(automaton.name + " - " + automaton.description);
     logText("Loaded automaton: " + automaton.name);
 
-    // Get inputs from machine
     vector<string> inputs = machine.getInputs();
     for (const string &s : inputs) {
         ui->inDropdown->addItem(QString::fromStdString(s));
     }
 
-    // Build states and transitions from the loaded automaton
     buildStatesFromLoaded(automaton.stateList);
     buildTransitionsFromLoaded(automaton.transitionList);
 }

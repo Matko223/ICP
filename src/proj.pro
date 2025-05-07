@@ -16,6 +16,7 @@ SOURCES += \
     CodeExecutor.cpp \
     MooreMachine.cpp \
     fileParser.cpp \
+    stateManager.cpp \
 
 HEADERS += \
     mainwindow.h \

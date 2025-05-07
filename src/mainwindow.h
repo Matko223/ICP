@@ -29,6 +29,7 @@
 #include "stateitem.h"
 #include "MooreMachine.h"
 #include "fileParser.h"
+#include "stateManager.h"
 
 #define PI 3.14159
 
@@ -75,7 +76,6 @@ public:
 
     bool createTransitionDialog(QString &transitionName, QString &fromState, QString &toState, QString &inputEvent, QString &boolExpr, QString &delay);
     QPainterPath createTransitionPath(StateItem *from, StateItem *to, QPointF &arrowPos, double &angle);
-    void drawArrow(const QPointF &arrowPos, double angle);
     QGraphicsPolygonItem *createArrow(const QPointF &arrowPos, double angle);
     void setTransitionLabel(const QString &name, StateItem *from, StateItem *to, QGraphicsPathItem *pathItem, const QPainterPath &path);
 
