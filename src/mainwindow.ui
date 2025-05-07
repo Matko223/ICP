@@ -26,8 +26,13 @@
       <x>10</x>
       <y>50</y>
       <width>131</width>
-      <height>131</height>
+      <height>51</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>MS Shell Dlg 2</family>
+     </font>
     </property>
     <item>
      <property name="text">
@@ -35,7 +40,8 @@
      </property>
      <property name="font">
       <font>
-       <pointsize>12</pointsize>
+       <family>MS Shell Dlg 2</family>
+       <pointsize>10</pointsize>
       </font>
      </property>
     </item>
@@ -45,7 +51,8 @@
      </property>
      <property name="font">
       <font>
-       <pointsize>12</pointsize>
+       <family>MS Shell Dlg 2</family>
+       <pointsize>10</pointsize>
       </font>
      </property>
     </item>
@@ -163,7 +170,7 @@ image: url(:/cancelButton.png);</string>
       </item>
      </layout>
     </widget>
-    <widget class="QPushButton" name="pushButton">
+    <widget class="QPushButton" name="generateJson">
      <property name="geometry">
       <rect>
        <x>150</x>
@@ -243,7 +250,7 @@ QPushButton:hover {
     </property>
     <property name="font">
      <font>
-      <pointsize>12</pointsize>
+      <pointsize>11</pointsize>
       <weight>75</weight>
       <bold>true</bold>
      </font>
@@ -282,14 +289,20 @@ QPushButton:hover {
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>190</y>
+      <y>100</y>
       <width>131</width>
-      <height>131</height>
+      <height>101</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
       <widget class="QLabel" name="inLabel">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>25</height>
+        </size>
+       </property>
        <property name="maximumSize">
         <size>
          <width>16777215</width>
@@ -298,7 +311,7 @@ QPushButton:hover {
        </property>
        <property name="font">
         <font>
-         <pointsize>10</pointsize>
+         <pointsize>11</pointsize>
          <weight>75</weight>
          <bold>true</bold>
         </font>
@@ -349,14 +362,20 @@ QPushButton:hover {
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>320</y>
+      <y>200</y>
       <width>131</width>
-      <height>301</height>
+      <height>251</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout_2">
      <item>
       <widget class="QLabel" name="outLabel">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>25</height>
+        </size>
+       </property>
        <property name="maximumSize">
         <size>
          <width>16777215</width>
@@ -365,7 +384,7 @@ QPushButton:hover {
        </property>
        <property name="font">
         <font>
-         <pointsize>10</pointsize>
+         <pointsize>11</pointsize>
          <weight>75</weight>
          <bold>true</bold>
         </font>
@@ -391,6 +410,76 @@ QPushButton:hover {
        </property>
        <property name="readOnly">
         <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QWidget" name="verticalLayoutWidget_3">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>460</y>
+      <width>131</width>
+      <height>161</height>
+     </rect>
+    </property>
+    <layout class="QVBoxLayout" name="verticalLayout_3">
+     <item>
+      <widget class="QLabel" name="varLabel">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>25</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>100</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>11</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Variables</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="addVar">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>30</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>30</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>Add variable</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPlainTextEdit" name="varValue">
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
+       <property name="placeholderText">
+        <string>Defined variables</string>
        </property>
       </widget>
      </item>
