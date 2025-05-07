@@ -30,19 +30,12 @@
 #include "MooreMachine.h"
 #include "fileParser.h"
 #include "stateManager.h"
+#include "transitionManager.h"
 
 #define PI 3.14159
 
 using namespace std;
 
-struct Transition {
-    StateItem *from_state;
-    StateItem *to_state;
-    QGraphicsPathItem *path;
-    QGraphicsPolygonItem *arrow;
-    QGraphicsTextItem *label;
-    QString name;
-};
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -75,8 +68,6 @@ public:
     bool createStateDialog(QString &stateName, QString &outputExpr);
 
     bool createTransitionDialog(QString &transitionName, QString &fromState, QString &toState, QString &inputEvent, QString &boolExpr, QString &delay);
-    QPainterPath createTransitionPath(StateItem *from, StateItem *to, QPointF &arrowPos, double &angle);
-    QGraphicsPolygonItem *createArrow(const QPointF &arrowPos, double angle);
     void setTransitionLabel(const QString &name, StateItem *from, StateItem *to, QGraphicsPathItem *pathItem, const QPainterPath &path);
 
     void handleDropEvent(QDropEvent *event);

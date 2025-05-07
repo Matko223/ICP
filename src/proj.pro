@@ -17,6 +17,7 @@ SOURCES += \
     MooreMachine.cpp \
     fileParser.cpp \
     stateManager.cpp \
+    transitionManager.cpp \
 
 HEADERS += \
     mainwindow.h \
