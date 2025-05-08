@@ -46,7 +46,6 @@ bool CodeExecutor::executeTransitionBoolExpr() {
     return condResult;
 }
 
-// TODO: make it better, limitations
 void CodeExecutor::executeStateExpr(const string& expr) {
     // Remove all the whitespaces from the expression, easier to parse
     string trimmedExpr = mooreMachine.removeSpaces(expr);
@@ -259,4 +258,36 @@ bool CodeExecutor::compareExprValues(const ExprValue& left, const ExprValue& rig
     }
 
     return false;
+}
+
+void CodeExecutor::setVariable(const string& type, const string& name, const string& value) {
+    const auto& allowedTypes = mooreMachine.getAllowedTypes();
+    if (find(allowedTypes.begin(), allowedTypes.end(), type) == allowedTypes.end())
+    {
+        cout << "Invalid variable type: " << type << " for variable: " << name << endl;
+        return;
+    }
+
+    for (auto& var : mooreMachine.getVariables())
+    {
+        if (var.name == name)
+        {
+            var.type = type;
+            var.value = value;
+            return;
+        }
+    }
+    mooreMachine.getVariables().push_back({type, name, value});
+}
+
+string CodeExecutor::getVariable(const std::string &name)
+{
+    for (const auto& var : mooreMachine.getVariables())
+    {
+        if (var.name == name)
+        {
+            return var.value;
+        }
+    }
+    return "";
 }

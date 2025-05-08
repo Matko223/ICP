@@ -17,6 +17,7 @@
 #include <QMainWindow>
 #include <QMessageBox>
 #include <QMimeData>
+#include <QTextStream>
 #include "startWindow.h"
 #include "startWindow.h"
 #include "stateitem.h"
@@ -25,6 +26,7 @@
 #include "stateManager.h"
 #include "transitionManager.h"
 #include "dialogsManager.h"
+#include "generateCode.h"
 
 #define PI 3.14159
 
@@ -56,6 +58,7 @@ public:
     void resetSimulation();
     void cancelWindow();
     void deleteScene();
+    void initializeGenerateWidget();
 
     StateItem *createState(QPointF position);
 
@@ -80,6 +83,8 @@ public:
     void updateState(int currentStateIndex);
 
     void generateJson();
+
+    void generateCode();
 
     ~MainWindow();
 

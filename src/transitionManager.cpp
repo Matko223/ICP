@@ -152,7 +152,5 @@ void TransitionManager::buildTransitionsFromLoaded(QGraphicsScene *scene, QMap<Q
         QGraphicsPathItem *pathItem = scene->addPath(path, QPen(Qt::black));
 
         setTransitionLabel(scene, transition.name, fromState, toState, pathItem, path, transitionItems);
-
-        logFunction("Added transition: " + transition.name + " from state: " + transition.fromName + " to state: " + transition.toName);
     }
 }

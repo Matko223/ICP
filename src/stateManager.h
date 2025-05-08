@@ -41,6 +41,7 @@ public:
      * @param stateItems Map to store the created states.
      * @param currentState Pointer to the current state (updated if an initial state is found).
      * @param states List of states from the JsonAutomaton.
+     * @param logFunction Function to log messages (e.g., from MainWindow).
      */
     static void loadStates(QGraphicsScene* scene, QMap<QString, StateItem*>& stateItems, StateItem*& currentState, const QList<JsonState>& states);
 

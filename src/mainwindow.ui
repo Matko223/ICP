@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1180</width>
-    <height>650</height>
+    <width>1193</width>
+    <height>660</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -20,7 +20,7 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QListWidget" name="listWidget">
+   <widget class="QListWidget" name="addItemWidget">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -32,6 +32,10 @@
     <property name="font">
      <font>
       <family>MS Shell Dlg 2</family>
+      <pointsize>9</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
+      <underline>false</underline>
      </font>
     </property>
     <item>
@@ -60,24 +64,36 @@
    <widget class="QWidget" name="controlWidget" native="true">
     <property name="geometry">
      <rect>
-      <x>900</x>
-      <y>580</y>
-      <width>251</width>
-      <height>41</height>
+      <x>910</x>
+      <y>600</y>
+      <width>271</width>
+      <height>31</height>
      </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true"/>
     </property>
     <widget class="QWidget" name="horizontalLayoutWidget">
      <property name="geometry">
       <rect>
-       <x>0</x>
-       <y>10</y>
-       <width>151</width>
+       <x>40</x>
+       <y>0</y>
+       <width>191</width>
        <height>31</height>
       </rect>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout">
+      <property name="spacing">
+       <number>10</number>
+      </property>
       <item>
        <widget class="QPushButton" name="startSimulation">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>25</height>
+         </size>
+        </property>
         <property name="maximumSize">
          <size>
           <width>25</width>
@@ -89,7 +105,8 @@
         </property>
         <property name="styleSheet">
          <string notr="true">background-color: green;
-image: url(:/playButton.png);</string>
+image: url(:/playButton.png);
+border: 1px solid rgb(0,0,0);</string>
         </property>
         <property name="text">
          <string/>
@@ -101,6 +118,12 @@ image: url(:/playButton.png);</string>
       </item>
       <item>
        <widget class="QPushButton" name="pauseSimulation">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>25</height>
+         </size>
+        </property>
         <property name="maximumSize">
          <size>
           <width>25</width>
@@ -112,7 +135,8 @@ image: url(:/playButton.png);</string>
         </property>
         <property name="styleSheet">
          <string notr="true">image: url(:/pauseButton.png);
-background-color: rgb(255, 0, 0);</string>
+background-color: rgb(255, 0, 0);
+border: 1px solid rgb(0,0,0);</string>
         </property>
         <property name="text">
          <string/>
@@ -127,7 +151,7 @@ background-color: rgb(255, 0, 0);</string>
         <property name="minimumSize">
          <size>
           <width>25</width>
-          <height>0</height>
+          <height>25</height>
          </size>
         </property>
         <property name="maximumSize">
@@ -138,7 +162,8 @@ background-color: rgb(255, 0, 0);</string>
         </property>
         <property name="styleSheet">
          <string notr="true">image: url(:/restartButton.png);
-background-color: rgb(0, 170, 255);</string>
+background-color: rgb(0, 170, 255);
+border: 1px solid rgb(0,0,0);</string>
         </property>
         <property name="text">
          <string/>
@@ -147,6 +172,12 @@ background-color: rgb(0, 170, 255);</string>
       </item>
       <item>
        <widget class="QPushButton" name="deleteButton">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>25</height>
+         </size>
+        </property>
         <property name="maximumSize">
          <size>
           <width>25</width>
@@ -158,7 +189,8 @@ background-color: rgb(0, 170, 255);</string>
         </property>
         <property name="styleSheet">
          <string notr="true">background-color: rgb(255, 255, 255);
-image: url(:/deleteButton.png);</string>
+image: url(:/deleteButton.png);
+border: 1px solid rgb(0,0,0);</string>
         </property>
         <property name="text">
          <string/>
@@ -170,6 +202,12 @@ image: url(:/deleteButton.png);</string>
       </item>
       <item>
        <widget class="QPushButton" name="cancelButton">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>25</height>
+         </size>
+        </property>
         <property name="maximumSize">
          <size>
           <width>25</width>
@@ -181,7 +219,8 @@ image: url(:/deleteButton.png);</string>
         </property>
         <property name="styleSheet">
          <string notr="true">background-color: rgb(255, 255, 255);
-image: url(:/cancelButton.png);</string>
+image: url(:/cancelButton.png);
+border: 1px solid rgb(0,0,0);</string>
         </property>
         <property name="text">
          <string/>
@@ -193,56 +232,14 @@ image: url(:/cancelButton.png);</string>
       </item>
      </layout>
     </widget>
-    <widget class="QPushButton" name="generateJson">
-     <property name="geometry">
-      <rect>
-       <x>150</x>
-       <y>10</y>
-       <width>100</width>
-       <height>30</height>
-      </rect>
-     </property>
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>100</width>
-       <height>0</height>
-      </size>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>100</width>
-       <height>30</height>
-      </size>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QPushButton {
-    background-color: rgb(0, 0, 0);
-    color: rgb(255, 255, 255);
-	border-radius:10px;
-}
-QPushButton:hover {
-    background-color: rgb(105, 105, 105);
-    color: rgb(0, 0, 0);
-}</string>
-     </property>
-     <property name="text">
-      <string>Generate text file</string>
-     </property>
-    </widget>
    </widget>
    <widget class="QGraphicsView" name="graphicsView">
     <property name="geometry">
      <rect>
       <x>150</x>
       <y>50</y>
-      <width>741</width>
-      <height>571</height>
+      <width>751</width>
+      <height>581</height>
      </rect>
     </property>
     <property name="minimumSize">
@@ -258,13 +255,13 @@ QPushButton:hover {
      </size>
     </property>
    </widget>
-   <widget class="QPlainTextEdit" name="plainTextEdit">
+   <widget class="QPlainTextEdit" name="logText">
     <property name="geometry">
      <rect>
-      <x>900</x>
+      <x>910</x>
       <y>80</y>
-      <width>251</width>
-      <height>501</height>
+      <width>271</width>
+      <height>481</height>
      </rect>
     </property>
     <property name="frameShape">
@@ -274,12 +271,12 @@ QPushButton:hover {
      <bool>true</bool>
     </property>
    </widget>
-   <widget class="QLabel" name="logText">
+   <widget class="QLabel" name="logLabel">
     <property name="geometry">
      <rect>
-      <x>900</x>
+      <x>910</x>
       <y>50</y>
-      <width>251</width>
+      <width>271</width>
       <height>31</height>
      </rect>
     </property>
@@ -305,7 +302,7 @@ QPushButton:hover {
      <rect>
       <x>150</x>
       <y>25</y>
-      <width>671</width>
+      <width>751</width>
       <height>21</height>
      </rect>
     </property>
@@ -399,7 +396,7 @@ QPushButton:hover {
       <x>10</x>
       <y>200</y>
       <width>131</width>
-      <height>251</height>
+      <height>261</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -446,6 +443,9 @@ QPushButton:hover {
        <property name="readOnly">
         <bool>true</bool>
        </property>
+       <property name="placeholderText">
+        <string>State outputs</string>
+       </property>
       </widget>
      </item>
     </layout>
@@ -456,7 +456,7 @@ QPushButton:hover {
       <x>10</x>
       <y>460</y>
       <width>131</width>
-      <height>161</height>
+      <height>171</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -519,6 +519,103 @@ QPushButton:hover {
       </widget>
      </item>
     </layout>
+   </widget>
+   <widget class="QWidget" name="generateWidget" native="true">
+    <property name="geometry">
+     <rect>
+      <x>910</x>
+      <y>560</y>
+      <width>271</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true"/>
+    </property>
+    <widget class="QWidget" name="horizontalLayoutWidget_2">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>0</y>
+       <width>271</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <item>
+       <widget class="QPushButton" name="generateJson">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>100</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>100</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QPushButton {
+    background-color: rgb(0, 0, 0);
+    color: rgb(255, 255, 255);
+	border-radius:10px;
+}
+QPushButton:hover {
+    background-color: rgb(105, 105, 105);
+    color: rgb(0, 0, 0);
+}</string>
+        </property>
+        <property name="text">
+         <string>Generate JSON</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="generateCode">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>100</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>100</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QPushButton {
+    background-color: rgb(0, 0, 0);
+    color: rgb(255, 255, 255);
+	border-radius:10px;
+}
+QPushButton:hover {
+    background-color: rgb(105, 105, 105);
+    color: rgb(0, 0, 0);
+}</string>
+        </property>
+        <property name="text">
+         <string>Generate code</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
    </widget>
   </widget>
  </widget>

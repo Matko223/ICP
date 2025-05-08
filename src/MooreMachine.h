@@ -187,6 +187,8 @@ public:
     // Loads the file, parses json and add values to internal attributes
     void loadFromJSONFile(const std::string& filename);
 
+    nlohmann::ordered_json getJson();
+
     std::string getMachineName() {
         return machineName;
     }
@@ -215,6 +217,12 @@ public:
         }
         return result;
     }
+
+    std::vector<Variable>& getVariables() {
+        return variables;
+    }
+
+    std::vector<std::string> getAllowedTypes();
 
     // Callback function for auto transition to the next state (after delay)
     std::function<void(int)> autoTransition;

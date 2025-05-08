@@ -9,6 +9,7 @@ CONFIG += c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    generateCode.cpp \
     main.cpp \
     mainwindow.cpp \
     startWindow.cpp \
@@ -22,6 +23,7 @@ SOURCES += \
 
 HEADERS += \
     dialogsManager.h \
+    generateCode.h \
     mainwindow.h \
     startWindow.h \
     stateitem.h \

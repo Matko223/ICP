@@ -34,16 +34,16 @@ MainWindow::MainWindow(const QString &name, const QString &description, QWidget 
     ui->setupUi(this);
 
     setAcceptDrops(true);
-    ui->listWidget->setDragEnabled(true);
+    ui->addItemWidget->setDragEnabled(true);
 
     ui->graphicsView->viewport()->setAcceptDrops(true);
     ui->graphicsView->viewport()->installEventFilter(this);
 
-    ui->listWidget->setSelectionMode(QAbstractItemView::SingleSelection);
-    ui->listWidget->setDragDropMode(QAbstractItemView::DragOnly);
+    ui->addItemWidget->setSelectionMode(QAbstractItemView::SingleSelection);
+    ui->addItemWidget->setDragDropMode(QAbstractItemView::DragOnly);
 
     // Initialize drag
-    connect(ui->listWidget, &QListWidget::itemPressed, this, [this](QListWidgetItem *) {
+    connect(ui->addItemWidget, &QListWidget::itemPressed, this, [this](QListWidgetItem *) {
         initDrag();
     });
 
@@ -51,7 +51,9 @@ MainWindow::MainWindow(const QString &name, const QString &description, QWidget 
 
     connect(scene, &QGraphicsScene::changed, this, &MainWindow::updateTransitions);
     ui->nameDesc->setText(name + " - " + description);
+
     initializeControlWidget();
+    initializeGenerateWidget();
 
     // Connect add new variable button
     connect(ui->addVar, &QPushButton::clicked, this , &MainWindow::addNewVariable);
@@ -131,7 +133,7 @@ void MainWindow::updateState(int currentStateIndex)
 void MainWindow::logText(QString str)
 {
     QString timestamp = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
-    ui->plainTextEdit->appendPlainText(QString::number(logCounter) + ". [" + timestamp + "] " + str);
+    ui->logText->appendPlainText(QString::number(logCounter) + ". [" + timestamp + "] " + str);
     logCounter++;
 }
 
@@ -143,14 +145,19 @@ void MainWindow::initializeControlWidget()
     connect(ui->deleteButton, &QPushButton::clicked, this, &MainWindow::deleteScene);
     connect(ui->cancelButton, &QPushButton::clicked, this, &MainWindow::cancelWindow);
     connect(ui->resetSimulation, &QPushButton::clicked, this, &MainWindow::resetSimulation);
+}
+
+void MainWindow::initializeGenerateWidget()
+{
     connect(ui->generateJson, &QPushButton::clicked, this, &MainWindow::generateJson);
+    connect(ui->generateCode, &QPushButton::clicked, this, &MainWindow::generateCode);
 }
 
 // Start simulation button handling
 void MainWindow::startSimulation()
 {
     if (stateItems.isEmpty()) {
-        QMessageBox::warning(this, "Error", "No states available to start simulation.");
+        QMessageBox::warning(this, "Error", "No states available to start simulation");
         return;
     }
 
@@ -171,15 +178,25 @@ void MainWindow::startSimulation()
 // Pause simulation button handling
 void MainWindow::pauseSimulation()
 {
+    if (!simulationStart)
+    {
+        QMessageBox::warning(this, "Error", "Simulation hasn´t started yet");
+        return;
+    }
+
     if (currentState) {
         logText("Simulation paused at state: " + stateItems.key(currentState));
-    } else {
-        logText("Simulation paused (no current state)");
     }
 }
 
 void MainWindow::resetSimulation()
 {
+    if (!simulationStart)
+    {
+        QMessageBox::warning(this, "Error", "Simulation hasn´t started yet");
+        return;
+    }
+
     if (currentState)
     {
         clearHighlight(currentState);
@@ -263,8 +280,6 @@ StateItem *MainWindow::createState(QPointF position)
 {
     return StateManager::createState(scene, position);
 }
-
-
 
 // Set a label for a state
 void MainWindow::setStateLabel(QString stateName, StateItem* state) {
@@ -398,7 +413,7 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
 // initalizes drag from list widget to scene
 void MainWindow::initDrag()
 {
-    QListWidgetItem *item = ui->listWidget->currentItem();
+    QListWidgetItem *item = ui->addItemWidget->currentItem();
     if (!item) {
         return;
     }
@@ -406,7 +421,7 @@ void MainWindow::initDrag()
     QMimeData *data = new QMimeData;
     data->setText(item->text());
 
-    QDrag *drag = new QDrag(ui->listWidget);
+    QDrag *drag = new QDrag(ui->addItemWidget);
     drag->setMimeData(data);
 
     drag->exec(Qt::CopyAction);
@@ -476,6 +491,29 @@ void MainWindow::generateJson()
     }
 
     machine.createJSONFile(fileName.toStdString());
+}
+
+void MainWindow::generateCode()
+{
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Save code"), "", tr("C++ Files (*.cpp)"));
+
+    if (fileName.isEmpty())
+    {
+        return;
+    }
+
+    auto json = machine.getJson();
+
+    CodeGenerator generator;
+    if (generator.generateCode(json, fileName.toStdString()))
+    {
+        logText("C++ generated");
+    }
+    else
+    {
+        QMessageBox::warning(this, "Error", "Code generating failed");
+    }
+
 }
 
 // destructor

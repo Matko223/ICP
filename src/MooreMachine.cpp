@@ -690,10 +690,47 @@ void MooreMachine::loadFromJSONFile(const string& filename) {
     setInitialOutput();
 }
 
-int MooreMachine::getCurrentState() {
+// Get json file for codegen
+nlohmann::ordered_json MooreMachine::getJson()
+{
+    nlohmann::ordered_json jsonFile;
+    jsonFile["name"] = machineName;
+    jsonFile["description"] = machineDescription;
+    jsonFile["inputs"] = inputs;
+    jsonFile["outputs"] = outputs;
+
+    vector<nlohmann::ordered_json> varsJson;
+    for (const auto& var : variables) {
+        varsJson.push_back(varToJSON(var));
+    }
+    jsonFile["variables"] = varsJson;
+
+    std::vector<nlohmann::ordered_json> statesJson;
+    for (const auto& state : states) {
+        statesJson.push_back(stateToJSON(state, true));
+    }
+    jsonFile["states"] = statesJson;
+
+    std::vector<nlohmann::ordered_json> transitionsJson;
+    for (const auto& state : states) {
+        transitionsJson.push_back(stateToJSON(state, false));
+    }
+    jsonFile["transitions"] = transitionsJson;
+
+    return jsonFile;
+}
+
+// Getter for current state
+int MooreMachine::getCurrentState()
+{
     return currentState;
 }
 
+// Getter for allowed types
+vector<string> MooreMachine::getAllowedTypes()
+{
+    return allowedTypes;
+}
 
 /* int main() {
     MooreMachine machine;

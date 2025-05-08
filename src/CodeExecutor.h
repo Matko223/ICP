@@ -71,6 +71,12 @@ public:
     // Evaluates given condition
     bool evaluateCond(const std::string& cond);
 
+    // Set variables from moore machine
+    void setVariable(const std::string &type, const std::string &name, const std::string &value);
+
+    // Get variables from moore machine
+    std::string getVariable(const std::string &name);
+
     // Evaluates each expression and type depends on what is returned
     // For more info see variants
     ExprValue evaluateExpr(const std::string& expr);
