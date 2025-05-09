@@ -19,6 +19,10 @@
 #include "json.hpp"
 #include "Structs.h"
 
+/**
+ * @class MooreMachine
+ * @brief Implementation of Moore finite state machine
+ */
 class MooreMachine {
 private:
     // Name of the machine
@@ -66,149 +70,293 @@ private:
     // For blocking threads
     std::condition_variable cv;
 
-    // Goes through the transitions of each state and checks if they are reachable
-    // If the state is reachable it will save the state into visited
+    /**
+     * @brief Depth-first search for reachability check
+     * @param state Current state index
+     * @param visited Set of visited state indices
+     */
     void dfs(int state, std::unordered_set<int>& visited);
 
-    // Check for the validity of type of added variable
+    /**
+     * @brief Checks if type is among allowed variable types
+     * @param type Type to validate
+     * @return true if type is valid, false otherwise
+     */
     bool isValidType(const std::string& type);
 
-    // Parses string into TransitionExpression for easier work
+    /**
+     * @brief Parses string into TransitionExpression
+     * @param expr Expression string to parse
+     * @return Parsed TransitionExpression
+     */
     TransitionExpression parseExpr(const std::string& expr);
 
-    // Helper function to remove spaces right after [ and right before ]
+    /**
+     * @brief Removes spaces after [ and before ]
+     * @param str String to trim
+     * @return Trimmed string
+     */
     std::string trimBracketSpaces(std::string str);
 
-    // Changes Variable struct to json
+    /**
+     * @brief Converts Variable to JSON
+     * @param var Variable to convert
+     * @return JSON representation of Variable
+     */
     nlohmann::ordered_json varToJSON(const Variable& var);
 
-    // Changes TransitionExpression struct to json
+    /**
+     * @brief Converts TransitionExpression to JSON
+     * @param expr TransitionExpression to convert
+     * @return JSON representation of TransitionExpression
+     */
     nlohmann::ordered_json transitionExprToJSON(const TransitionExpression& expr);
 
-    // Changes State struct to json
+    /**
+     * @brief Converts State to JSON
+     * @param state State to convert
+     * @param onlyStates If true, only state info without transitions
+     * @return JSON representation of State
+     */
     nlohmann::ordered_json stateToJSON(const State& state, bool onlyStates);
 
-    // Changes json to Variable struct
+    /**
+     * @brief Converts JSON to Variable
+     * @param j JSON to convert
+     * @return Variable created from JSON
+     */
     Variable jsonToVariable(const nlohmann::ordered_json& j);
 
-    // Checks if delay is valid
+    /**
+     * @brief Validates delay value format
+     * @param delayValue Delay value to check
+     * @return true if valid, false otherwise
+     */
     bool delayValid(const std::string& delayValue);
 
-    // Gets the value of the delay
+    /**
+     * @brief Parses delay value to milliseconds
+     * @param delayValue Delay value string
+     * @return Delay in milliseconds
+     */
     int getDelayValue(const std::string& delayValue);
 
 public:
-    // Constructor
+    /**
+     * @brief Default constructor
+     */
     MooreMachine();
 
-    // Get index of current state
+    /**
+     * @brief Gets current state index
+     * @return Index of current state
+     */
     int getCurrentState();
 
-    // Adds new start state to the machine
+    /**
+     * @brief Adds start state to machine
+     * @param name State name
+     * @param outputExpr Output expression
+     * @param transitions Initial transitions map
+     * @return Index of added state
+     */
     int addStartState(std::string name, std::string outputExpr, const std::unordered_map<TransitionExpression, int>& transitions = {});
     
-    // Adds new state to the machine
+    /**
+     * @brief Adds regular state to machine
+     * @param name State name
+     * @param outputExpr Output expression
+     * @param transitions Initial transitions map
+     * @return Index of added state
+     */
     int addState(std::string name, std::string outputExpr, const std::unordered_map<TransitionExpression, int>& transitions = {});
     
-    // Adds new transitions for the state
+    /**
+     * @brief Adds transition between states
+     * @param fromState Source state index
+     * @param expr Transition expression
+     * @param toState Destination state index
+     */
     void addTransition(int fromState, const std::string& expr, int toState);
     
-    // Adds new variable globally for the whole machine
-    // Variable is in format {type} {name} = {value}
-    // Checks if the type is valid
+    /**
+     * @brief Adds variable to machine
+     * @param type Variable type
+     * @param name Variable name
+     * @param value Initial value (defaults to "0")
+     */
     void addVariable(const std::string& type, const std::string& name, const std::string& value = "0");
     
-    // Adds inputs to the machine
+    /**
+     * @brief Adds inputs to machine
+     */
     void addInputs();
     
-    // Adds outputs to the machine
+    /**
+     * @brief Adds outputs to machine
+     */
     void addOutputs();
     
-    // Adds name to the machine
+    /**
+     * @brief Sets machine name
+     * @param machineName Name to set
+     */
     void addMachineName(const std::string& machineName);
     
-    // Adds description to the machine
+    /**
+     * @brief Sets machine description
+     * @param machineDescription Description to set
+     */
     void addMachineDescription(const std::string& machineDescription);
     
-    // Set value for output
-    // Example: out: 1
+    /**
+     * @brief Sets output value
+     * @param outputName Output name
+     * @param outputValue Output value
+     */
     void setCurrentOutput(const std::string& outputName, const std::string& outputValue);
     
-    // Set initial output values to empty string for all outputs when the machine starts
+    /**
+     * @brief Initializes all outputs to empty string
+     */
     void setInitialOutput();
     
-    // Handle start state when we start the machine
-    // Even when starting it should do state action
+    /**
+     * @brief Processes start state actions
+     */
     void processStartState();
 
-    // Processes given input with its value
-    // Checks current state, tries to find transition and if it can make transition it will do it and then do state action
+    /**
+     * @brief Processes input and performs transitions
+     * @param inputName Input name
+     * @param inputValue Input value
+     */
     void processInput(const std::string& inputName, const std::string& inputValue);
     
-    // Function to check if input we use is valid meaning is in list of inputs
+    /**
+     * @brief Validates input name
+     * @param inputName Input name to check
+     * @return true if input is valid, false otherwise
+     */
     bool isInputValid(const std::string& inputName);
     
-    // Retrieves all the transitions of the state
+    /**
+     * @brief Gets transitions for a state
+     * @param currentState State to get transitions for
+     * @return Map of transition expressions to destination states
+     */
     std::unordered_map<TransitionExpression, int> getTransitions(State& currentState);
 
-    // Get all the variables defined in the machine
+    /**
+     * @brief Gets all variables
+     * @return Vector of variables
+     */
     std::vector<Variable> getVars();
 
-    // Get all the inputs that machine can accept
+        /**
+     * @brief Gets all inputs
+     * @return Vector of input names
+     */
     std::vector<std::string> getInputs();
 
-    // Resolves delay value and creates thread for the state
+    /**
+     * @brief Sets up delay transition
+     * @param delayValue Delay value string
+     * @param nextState Destination state index
+     */
     void handleDelay(const std::string& delayValue, int nextState);
 
-    // Sends interruption signal to the thread
+    /**
+     * @brief Cancels current delay
+     */
     void interruptDelay();
 
-    // Going through all the states, if the state is not in the visited it means it is not reachable
+    /**
+     * @brief Checks state reachability
+     */
     void checkReachability();
     
-    // Going through all the states, if you can't go anywhere from it then it is dead
+    /**
+     * @brief Identifies dead states
+     */
     void checkDeadStates();
 
-    // Checks every combination of states, if they have same output and transition then they might be redundant
+    /**
+     * @brief Checks for redundant states
+     */
     void checkRedundancy();
 
-    // Method for doing all the checks at once
+    /**
+     * @brief Performs all validation checks
+     */
     void doAllChecks();
 
-    // Helper function to remove all spaces from string
+    /**
+     * @brief Removes spaces from string
+     * @param str String to process
+     * @return String without spaces
+     */
     std::string removeSpaces(std::string str);
 
-    // Prints all the internal machine attributes
+    /**
+     * @brief Prints machine information
+     */
     void printMachine();
 
-    // Creates json file from internal attributes
+    /**
+     * @brief Exports machine to JSON file
+     * @param name Filename
+     */
     void createJSONFile(const std::string& name);
 
-    // Loads the file, parses json and add values to internal attributes
+    /**
+     * @brief Loads machine from JSON file
+     * @param filename File to load from
+     */
     void loadFromJSONFile(const std::string& filename);
 
+    /**
+     * @brief Gets machine as JSON object
+     * @return JSON representation of machine
+     */
     nlohmann::ordered_json getJson();
 
+    /**
+     * @brief Gets machine name
+     * @return Machine name
+     */
     std::string getMachineName() {
         return machineName;
     }
 
-    // Gets machine description
+    /**
+     * @brief Gets machine description
+     * @return Machine description
+     */
     std::string getMachineDescription() {
         return machineDescription;
     }
 
-    // Gets all states
+    /**
+     * @brief Gets all states
+     * @return Reference to states vector
+     */
     const std::vector<State>& getStates() {
         return states;
     }
 
-    // Gets start state
+    /**
+     * @brief Gets start state index
+     * @return Start state index
+     */
     int getStartState() {
         return startState;
     }
 
-    // Get current output for gui logging
+    /**
+     * @brief Gets current output as string
+     * @return Formatted current output
+     */
     std::string getCurrentOutput()
     {
         std::string result;
@@ -218,10 +366,18 @@ public:
         return result;
     }
 
+    /**
+     * @brief Gets variables
+     * @return Reference to variables vector
+     */
     std::vector<Variable>& getVariables() {
         return variables;
     }
 
+    /**
+     * @brief Gets allowed variable types
+     * @return Vector of allowed types
+     */
     std::vector<std::string> getAllowedTypes();
 
     // Callback function for auto transition to the next state (after delay)

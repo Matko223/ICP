@@ -14,8 +14,16 @@
 #include "Structs.h"
 #include "MooreMachine.h"
 
+/**
+ * @typedef ExprValue
+ * @brief Type definition for values that can be returned from expression evaluation
+ */
 using ExprValue = std::variant<bool, int, std::string>;
 
+/**
+ * @class CodeExecutor
+ * @brief Class for executing code in the Moore machine
+ */
 class CodeExecutor {
 private:
     // Reference to out machine
@@ -39,49 +47,114 @@ private:
     // Built-in functions in our small interpreter
     std::vector<std::string> builtinFuncs = {"atoi", "output", "valueof", "defined", "elapsed"};
 
-    // defined function
-    // Checks if the input is the one passed to executor meaning user entered this input with value
+    /**
+     * @brief Checks if the input name is defined
+     * 
+     * @param inputName The name of the input to check
+     * @return true if the input is defined, false otherwise
+     */
     bool defined(const std::string& inputName);
 
-    // valueof function
-    // Returns string value of input user typed
+    /**
+     * @brief Gets the value of the input
+     * 
+     * @param inputName The name of the input
+     * @return The value of the input
+     */
     std::string valueof(const std::string& inputName);
 
-    // output function
-    // Changes current output based on the output name and value passed
+    /**
+     * @brief Outputs the value to the specified output name
+     * 
+     * @param outputName The name of the output
+     * @param value The value to output
+     * @return void
+     */
     void output(const std::string& outputName, const std::string& value);
 
-    // atoi function
-    // Returns integer representation of string value
+    /**
+     * @brief Converts a string to an integer
+     * 
+     * @param value The string to convert
+     * @return The converted integer
+     */
     int atoi(const std::string& value);
 
-    // Compares expression values, values can be of different type, we can only compare values of same type, no implicit conversions
+    /**
+     * @brief Compares two expression values based on the operator
+     * 
+     * @param left The left expression value
+     * @param right The right expression value
+     * @param op The operator to use for comparison
+     * @return true if the comparison is true, false otherwise
+     */
     bool compareExprValues(const ExprValue& left, const ExprValue& right, const std::string& op);
 
 public:
-    // Constructor
+    /**
+     * @brief Constructor for the CodeExecutor class
+     * 
+     * @param mooreMachine Reference to the MooreMachine object
+     * @param stateExpr The state action expression
+     * @param transitionExpr The transition expression
+     * @param inputName The name of the input
+     * @param inputValue The value of the input
+     */
     CodeExecutor(MooreMachine& mooreMachine, const std::string& stateExpr, const std::string& transitionExpr, const std::string& inputName, const std::string& inputValue);
     
-    // Executes BoolExpr meant for transition
+    /**
+     * @brief Executes the transition expression to determine if a transition should occur
+     * 
+     * @return true if the transition should be taken, false otherwise
+     */
     bool executeTransitionBoolExpr();
 
-    // Executes state action, occurs when we get to the state
+    /**
+     * @brief Executes actions associated with entering a state
+     * 
+     * @param expr The expression to execute
+     */
     void executeStateExpr(const std::string& expr);
 
-    // Evaluates given condition
+    /**
+     * @brief Evaluates a boolean condition expression
+     * 
+     * @param cond The condition to evaluate
+     * @return The boolean result of the condition
+     */
     bool evaluateCond(const std::string& cond);
 
-    // Set variables from moore machine
+    /**
+     * @brief Sets a variable in the Moore machine
+     * 
+     * @param type The data type of the variable ("int", "bool", "string")
+     * @param name The name of the variable
+     * @param value The value to assign to the variable
+     */
     void setVariable(const std::string &type, const std::string &name, const std::string &value);
 
-    // Get variables from moore machine
+    /**
+     * @brief Retrieves the value of a variable from the Moore machine
+     * 
+     * @param name The name of the variable to retrieve
+     * @return The string representation of the variable's value
+     */
     std::string getVariable(const std::string &name);
 
-    // Evaluates each expression and type depends on what is returned
-    // For more info see variants
+    /**
+     * @brief Evaluates an expression and returns its value
+     * 
+     * @param expr The expression to evaluate
+     * @return The value of the expression as an ExprValue (bool, int, or string)
+     */
     ExprValue evaluateExpr(const std::string& expr);
 
-    // Helper function to check if the string value is number
+    /**
+     * @brief Checks if a string represents a numeric value
+     * 
+     * @param expr The string to check
+     * @return true if the string is a valid number, false otherwise
+     */
     static bool isNumber(const std::string& expr);
 };
 

@@ -13,6 +13,10 @@
 #include "stateitem.h"
 #include "fileParser.h"
 
+/**
+ * @class StateManager
+ * @brief Manages the states in the Moore machine simulation
+ */
 class StateManager {
 public:
     /**

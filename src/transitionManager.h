@@ -22,6 +22,9 @@
  
  #define PI 3.14159
  
+/**
+ * @brief Structure representing a visual and logical transition between states
+ */
  struct Transition {
      StateItem *from_state;
      StateItem *to_state;
@@ -31,6 +34,10 @@
      QString name;
  };
  
+/**
+ * @class TransitionManager
+ * @brief Static class for creating and managing transitions between states in the Moore machine
+ */
  class TransitionManager {
  public:
      /**

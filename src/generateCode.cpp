@@ -1,3 +1,9 @@
+/**
+ * @file generateCode.h
+ * @brief Implementation of the CodeGenerator class
+ * @author Róbert Páleš (xpalesr00)
+*/
+
 #include "generateCode.h"
 
 // Escape quotes for output processing

@@ -28,7 +28,7 @@ class QWidget;
 class DialogManager
 {
     public:
-    /**
+        /**
          * @brief Opens dialog when adding a new transition
          * @param parent Parent widget
          * @param transitionName Name of the transition
