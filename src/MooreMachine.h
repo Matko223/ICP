@@ -19,10 +19,6 @@
 #include "json.hpp"
 #include "Structs.h"
 
-/**
- * @class MooreMachine
- * @brief Implementation of Moore finite state machine
- */
 class MooreMachine {
 private:
     // Name of the machine
@@ -60,7 +56,7 @@ private:
 
     // Value to tell if delay should be cancelled or not
     bool delayCancel = false;
-    
+
     // Value to tell if delay is active or not
     bool delayActive = false;
 
@@ -161,7 +157,7 @@ public:
      * @return Index of added state
      */
     int addStartState(std::string name, std::string outputExpr, const std::unordered_map<TransitionExpression, int>& transitions = {});
-    
+
     /**
      * @brief Adds regular state to machine
      * @param name State name
@@ -170,7 +166,7 @@ public:
      * @return Index of added state
      */
     int addState(std::string name, std::string outputExpr, const std::unordered_map<TransitionExpression, int>& transitions = {});
-    
+
     /**
      * @brief Adds transition between states
      * @param fromState Source state index
@@ -178,7 +174,7 @@ public:
      * @param toState Destination state index
      */
     void addTransition(int fromState, const std::string& expr, int toState);
-    
+
     /**
      * @brief Adds variable to machine
      * @param type Variable type
@@ -186,41 +182,41 @@ public:
      * @param value Initial value (defaults to "0")
      */
     void addVariable(const std::string& type, const std::string& name, const std::string& value = "0");
-    
+
     /**
      * @brief Adds inputs to machine
      */
     void addInputs();
-    
+
     /**
      * @brief Adds outputs to machine
      */
     void addOutputs();
-    
+
     /**
      * @brief Sets machine name
      * @param machineName Name to set
      */
     void addMachineName(const std::string& machineName);
-    
+
     /**
      * @brief Sets machine description
      * @param machineDescription Description to set
      */
     void addMachineDescription(const std::string& machineDescription);
-    
+
     /**
      * @brief Sets output value
      * @param outputName Output name
      * @param outputValue Output value
      */
     void setCurrentOutput(const std::string& outputName, const std::string& outputValue);
-    
+
     /**
      * @brief Initializes all outputs to empty string
      */
     void setInitialOutput();
-    
+
     /**
      * @brief Processes start state actions
      */
@@ -232,14 +228,14 @@ public:
      * @param inputValue Input value
      */
     void processInput(const std::string& inputName, const std::string& inputValue);
-    
+
     /**
      * @brief Validates input name
      * @param inputName Input name to check
      * @return true if input is valid, false otherwise
      */
     bool isInputValid(const std::string& inputName);
-    
+
     /**
      * @brief Gets transitions for a state
      * @param currentState State to get transitions for
@@ -275,7 +271,7 @@ public:
      * @brief Checks state reachability
      */
     void checkReachability();
-    
+
     /**
      * @brief Identifies dead states
      */
@@ -382,6 +378,11 @@ public:
 
     // Callback function for auto transition to the next state (after delay)
     std::function<void(int)> autoTransition;
+
+    /**
+     * @brief clear everything
+     */
+    void clear();
 };
 
 #endif

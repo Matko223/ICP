@@ -361,7 +361,6 @@ int MooreMachine::getDelayValue(const string& delayValue) {
                 if (var.name == delayValue && CodeExecutor::isNumber(var.value)) {
                     return stoi(var.value);
                 }
-                return -1;
             }
         }
     }
@@ -379,15 +378,20 @@ void MooreMachine::handleDelay(const string& delayValue, int nextState) {
     }
 
     // Check if it is valid variable
+    // Loop all variables
     else {
+        bool found = false;
         for (const auto& var : variables) {
             if (var.name == delayValue && CodeExecutor::isNumber(var.value)) {
                 delay = stoi(var.value);
+                found = true;
+                break;
             }
-            else {
-                cout << "Variable \"" << delayValue << "\" for delay does not exist in machine or value of the variable is not a number" << endl;
-                return;
-            }
+        }
+        if (!found)
+        {
+            cout << "Variable \"" << delayValue << "\" for delay does not exist in machine or value of the variable is not a number" << endl;
+            return;
         }
     }
 
@@ -730,6 +734,22 @@ int MooreMachine::getCurrentState()
 vector<string> MooreMachine::getAllowedTypes()
 {
     return allowedTypes;
+}
+
+void MooreMachine::clear() {
+    states.clear();
+    variables.clear();
+    inputs.clear();
+    outputs.clear();
+    currentOutput.clear();
+    startState = -1;
+    currentState = -1;
+    machineName.clear();
+    machineDescription.clear();
+    delayActive = false;
+    delayCancel = false;
+    autoTransition = nullptr;
+    interruptDelay();
 }
 
 /* int main() {
