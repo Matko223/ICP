@@ -1,9 +1,3 @@
-/**
- * @file generateCode.h
- * @brief Header file for the CodeGenerator class
- * @author Róbert Páleš (xpalesr00)
-*/
-
 #ifndef GENERATECODE_H
 #define GENERATECODE_H
 
@@ -11,7 +5,6 @@ using namespace std;
 
 #include "json.hpp"
 #include <string>
-#include "MooreMachine.h"
 #include <iostream>
 #include <fstream>
 
@@ -30,11 +23,12 @@ class CodeGenerator
          */
         static bool generateCode(const nlohmann::ordered_json json, const string &fileName);
 
-    private:
         /**
-         * @brief Moore machine instance used during code generation
+         * @brief process escape quotes while processing output
+         * @param str string to be checked
+         * @return escaped string
          */
-        static MooreMachine machine;
+        static string escapeQuotes(const string &str);
 };
 
 #endif // GENERATECODE_H
