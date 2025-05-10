@@ -68,6 +68,7 @@ void TransitionManager::setTransitionLabel(QGraphicsScene *scene, const QString 
         QPointF point1 = from->sceneBoundingRect().center();
         qreal radius = from->rect().width() / 2;
         QPointF top = point1 + QPointF(0, -radius);
+
         qreal offset = 55;
 
         t.label->setPos(top.x() - t.label->boundingRect().width() / 2, top.y() - offset - t.label->boundingRect().height() / 2);
@@ -120,8 +121,28 @@ void TransitionManager::updateTransitions(QGraphicsScene *scene, QMap<QString, T
             QPointF point1 = t.from_state->sceneBoundingRect().center();
             qreal radius = t.from_state->rect().width() / 2;
             QPointF top = point1 + QPointF(0, -radius);
+
+            // Count number of transitions where from == to
+            int count = 0;
+            for (const auto &key : transitionItems.keys())
+            {
+                const Transition &exists = transitionItems[key];
+                if (exists.from_state == t.from_state && exists.to_state == t.to_state)
+                {
+                    if (exists.name == t.name)
+                    {
+                        break;
+                    }
+                    count++;
+                }
+            }
+
+            // Move each transition a bit higher
             qreal offset = 55;
-            t.label->setPos(top.x() - t.label->boundingRect().width() / 2, top.y() - offset - t.label->boundingRect().height() / 2);
+            qreal step = 12.5;
+            qreal fullOffset = offset + count * step;
+
+            t.label->setPos(top.x() - t.label->boundingRect().width() / 2, top.y() - fullOffset - t.label->boundingRect().height() / 2);
         } else {
             QPointF center = path.pointAtPercent(0.5);
             qreal angle = qDegreesToRadians(path.angleAtPercent(0.5));

@@ -1,3 +1,9 @@
+/**
+ * @file generateCode.h
+ * @author header file for code generator
+ * @author Róbert Páleš (xpalesr00)
+*/
+
 #ifndef GENERATECODE_H
 #define GENERATECODE_H
 

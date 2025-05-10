@@ -1,0 +1,114 @@
+{
+    "name": "Example machine",
+    "description": "This is the description of the machine",
+    "inputs": [
+        "in",
+        "ian"
+    ],
+    "outputs": [
+        "out"
+    ],
+    "variables": [
+        {
+            "type": "int",
+            "name": "timeout",
+            "value": "5000"
+        }
+    ],
+    "states": [
+        {
+            "name": "IDLE",
+            "outputExpr": "{ output(\"out\", 0) }"
+        },
+        {
+            "name": "ACTIVE",
+            "outputExpr": "{ output(\"out\", 1) }"
+        },
+        {
+            "name": "TIMING",
+            "outputExpr": "{ }"
+        },
+        {
+            "name": "NEXT",
+            "outputExpr": "output(\"output\", 0)"
+        }
+    ],
+    "transitions": [
+        {
+            "name": "IDLE",
+            "transitions": [
+                {
+                    "expression": {
+                        "inputEvent": "in",
+                        "boolExpr": "atoi(valueof(\"in\")) == 1",
+                        "delay": ""
+                    },
+                    "nextState": "ACTIVE"
+                }
+            ]
+        },
+        {
+            "name": "ACTIVE",
+            "transitions": [
+                {
+                    "expression": {
+                        "inputEvent": "ian",
+                        "boolExpr": "atoi(valueof(\"ian\")) > 1",
+                        "delay": ""
+                    },
+                    "nextState": "NEXT"
+                },
+                {
+                    "expression": {
+                        "inputEvent": "in",
+                        "boolExpr": "atoi(valueof(\"in\")) == 0",
+                        "delay": ""
+                    },
+                    "nextState": "TIMING"
+                }
+            ]
+        },
+        {
+            "name": "TIMING",
+            "transitions": [
+                {
+                    "expression": {
+                        "inputEvent": "in",
+                        "boolExpr": "atoi(valueof(\"in\")) == 1",
+                        "delay": ""
+                    },
+                    "nextState": "ACTIVE"
+                },
+                {
+                    "expression": {
+                        "inputEvent": "",
+                        "boolExpr": "",
+                        "delay": "timeout"
+                    },
+                    "nextState": "IDLE"
+                }
+            ]
+        },
+        {
+            "name": "NEXT",
+            "transitions": [
+                {
+                    "expression": {
+                        "inputEvent": "",
+                        "boolExpr": "",
+                        "delay": "timeout"
+                    },
+                    "nextState": "IDLE"
+                },
+                {
+                    "expression": {
+                        "inputEvent": "ian",
+                        "boolExpr": "atoi(valueof(\"ian\")) == 5",
+                        "delay": ""
+                    },
+                    "nextState": "TIMING"
+                }
+            ]
+        }
+    ]
+}

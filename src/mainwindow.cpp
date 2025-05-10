@@ -7,8 +7,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-// TODO - prechod aaa a->a a potom aaa a->b chyba
-
 // initialize scene
 void MainWindow::initScene()
 {
@@ -530,11 +528,10 @@ void MainWindow::generateCode()
     {
         QMessageBox::warning(this, "Error", "Code generating failed");
     }
-    // compileAndRun(fileName);
+    compileCode(fileName);
 }
 
-/* TOTO ASI NIE KED BUDU SOCKETY
-void MainWindow::compileAndRun(const QString &fileName)
+void MainWindow::compileCode(const QString &fileName)
 {
     QString bin = fileName;
     bin.chop(4);
@@ -556,7 +553,7 @@ void MainWindow::compileAndRun(const QString &fileName)
     }
 
     logText("Compilation success");
-}*/
+}
 
 void MainWindow::handleStateUpdate(int index)
 {

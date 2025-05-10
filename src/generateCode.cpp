@@ -1,3 +1,9 @@
+/**
+ * @file generateCode.cpp
+ * @author generates c++ code representing created automaton
+ * @author Róbert Páleš (xpalesr00)
+*/
+
 #include "generateCode.h"
 
 string CodeGenerator::escapeQuotes(const string &str)
@@ -19,8 +25,8 @@ bool CodeGenerator::generateCode(const nlohmann::ordered_json json, const string
         return false;
     }
 
-    string name = json["name"];
-    string description = json["description"];
+    string machineName = json["name"];
+    string machineDescription = json["description"];
 
     vector<string> stateNames;
     for (const auto& state : json["states"]) {
@@ -50,11 +56,14 @@ bool CodeGenerator::generateCode(const nlohmann::ordered_json json, const string
     code << "#include <chrono>\n";
     code << "#include <thread>\n";
     code << "#include <variant>\n";
+    code << "#include <sstream>\n";
     code << "#include <algorithm>\n";
     code << "#include <cctype>\n\n";
 
-    code << "using ExprValue = std::variant<bool, int, std::string>;";
+    code << "using ExprValue = std::variant<bool, int, std::string>;\n";
     code << "using namespace std;\n";
+    code << "string machineName = \"" << machineName << "\";\n";
+    code << "string machineDescription = \"" << machineDescription << "\";\n\n";
 
     code << "enum States {\n";
     for (size_t i = 0; i < stateNames.size(); i++)
@@ -227,9 +236,41 @@ bool CodeGenerator::generateCode(const nlohmann::ordered_json json, const string
     code << "    return false;\n";
     code << "}\n";
 
-
-
     code << "States currentState = " << stateNames[0] << ";\n\n";
+
+    code << "void processState() {\n";
+    code << "    switch(currentState) {\n";
+
+    for (const auto &transitionBlock : json["transitions"]) {
+        string state = transitionBlock["name"];
+        for (const auto &transition : transitionBlock["transitions"]) {
+            string inputEvent = transition["expression"]["inputEvent"];
+            string delayName = transition["expression"]["delay"];
+            string nextState = transition["nextState"];
+
+            if (inputEvent.empty() && !delayName.empty()) {
+                code << "        case " << state << ": {\n";
+                code << "            int delay = 0;\n";
+                code << "            for (const auto &var : variables) {\n";
+                code << "                if (var.name == \"" << delayName << "\") {\n";
+                code << "                    delay = stoi(var.value);\n";
+                code << "                    break;\n";
+                code << "                }\n";
+                code << "            }\n";
+                code << "            cout << \"Entering state with DELAY... DELAY started with time \" << delay << \"[ms]\\n\";\n";
+                code << "            this_thread::sleep_for(chrono::milliseconds(delay));\n";
+                code << "            cout << \"TIMEOUT! Moving to state: " << nextState << "\\n\";\n";
+                code << "            currentState = " << nextState << ";\n";
+                code << "            break;\n";
+                code << "        }\n";
+                break;
+            }
+        }
+    }
+    code << "        default:\n";
+    code << "            break;\n";
+    code << "    }\n";
+    code << "}\n\n";
 
     code << "void processOutput() {\n";
     code << "    switch(currentState) {\n";
@@ -237,7 +278,7 @@ bool CodeGenerator::generateCode(const nlohmann::ordered_json json, const string
                 {
     code << "        case " << state << ":\n";
     code << "        {\n";
-    code << "            cout << \"Output expression for state " << state << " is: " << escapeQuotes(stateOutputs[state]) << "\" << endl;\n";
+    code << "            cout << \"State " << state << " processed, output is: " << escapeQuotes(stateOutputs[state]) << "\" << endl;\n";
     code << "            break;\n";
     code << "        }\n";
                 }
@@ -273,21 +314,6 @@ bool CodeGenerator::generateCode(const nlohmann::ordered_json json, const string
                 }
                 code << "            }\n";
             }
-            else if (!delay.empty())
-            {
-                code << "            int delay = 0;\n";
-                code << "            for (const auto &var : variables) {\n";
-                code << "                if (var.name == \"" << delay << "\") {\n";
-                code << "                    delay = stoi(var.value);\n";
-                code << "                    break;\n";
-                code << "                }\n";
-                code << "            }\n\n";
-                code << "            cout << \"DELAY started...\\n\";\n";
-                code << "            this_thread::sleep_for(chrono::milliseconds(delay));\n";
-                code << "            cout << \"TIMEOUT! Moving to state: " << nextState << "\\n\";\n";
-                code << "            currentState = " << nextState << ";\n";
-                code << "            processOutput();\n\n";
-            }
         }
         code << "            break;\n";
         code << "        }\n";
@@ -295,9 +321,11 @@ bool CodeGenerator::generateCode(const nlohmann::ordered_json json, const string
     code << "        default:\n";
     code << "            break;\n";
     code << "    }\n";
+    code << "   processState();\n";
     code << "}\n\n";
 
     code << "int main() {\n";
+    code << "    cout << \"Running automaton: \" << machineName << \" - \" << machineDescription << endl;\n";
     code << "    string inputEvent, value;\n";
     code << "    while(true) {\n";
     code << "        cout << \"Enter input event and value: \";\n";

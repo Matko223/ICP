@@ -216,7 +216,11 @@ public:
      */
     void generateCode();
 
-    // void compileAndRun(const QString &fileName);
+    /**
+     * @brief compile generated c++ code
+     * @param fileName c++ code
+     */
+    void compileCode(const QString &fileName);
 
     /**
      * @brief Destructor for MainWindow
