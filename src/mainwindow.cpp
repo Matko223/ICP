@@ -100,16 +100,7 @@ void MainWindow::handleInput() {
     // Update state highlight when delay is triggered
     machine.autoTransition = [this](int index)
     {
-        QMetaObject::invokeMethod(this, [this, index]()
-        {
-            updateState(index);
-            const auto &states = machine.getStates();
-            if (index >= 0 && index < static_cast<int>(states.size()))
-            {
-                QString stateName = QString::fromStdString(states[index].name);
-                logText("DELAY, moving to state: " + stateName);
-            }
-        }, Qt::QueuedConnection);
+        QMetaObject::invokeMethod(this, "handleStateUpdate", Qt::QueuedConnection, Q_ARG(int, index));
     };
 
     ui->inValue->clear();
@@ -566,6 +557,17 @@ void MainWindow::compileAndRun(const QString &fileName)
 
     logText("Compilation success");
 }*/
+
+void MainWindow::handleStateUpdate(int index)
+{
+    updateState(index);
+    const auto &states = machine.getStates();
+    if (index >= 0 && index < static_cast<int>(states.size()))
+    {
+        QString stateName = QString::fromStdString(states[index].name);
+        logText("DELAY, moving to state: " + stateName);
+    }
+}
 
 // destructor
 MainWindow::~MainWindow()

@@ -234,6 +234,12 @@ private slots:
      */
     void handleInput();
 
+    /**
+     * @brief Handles state updates during simulation
+     * @param index Index of the new state
+     */
+    void handleStateUpdate(int index);
+
 private:
     Ui::MainWindow *ui;                         // UI components
     QGraphicsScene *scene;                      // Scene for state diagram
