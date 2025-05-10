@@ -1,0 +1,131 @@
+{
+    "name": "TOF",
+    "description": "Timer to off, umí nastavit timeout a na požádání sdělit zbývající čas timeru.",
+    "inputs": [
+        "in",
+        "set_to",
+        "req_rt"
+    ],
+    "outputs": [
+        "out",
+        "rt"
+    ],
+    "variables": [
+        {
+            "type": "int",
+            "name": "timeout",
+            "value": "5000"
+        }
+    ],
+    "states": [
+        {
+            "name": "IDLE",
+            "outputExpr": "{ if (defined(\"set_to\")) { timeout = atoi(valueof(\"set_to\")); } output(\"out\", 0); output(\"rt\", 0); }"
+        },
+        {
+            "name": "ACTIVE",
+            "outputExpr": "{ if (defined(\"set_to\")) { timeout = atoi(valueof(\"set_to\")); } output(\"out\", 1); output(\"rt\", timeout); }"
+        },
+        {
+            "name": "TIMING",
+            "outputExpr": "{ if (defined(\"set_to\")) { timeout = atoi(valueof(\"set_to\")); } output(\"rt\", timeout); }"
+        }
+    ],
+    "transitions": [
+        {
+            "name": "IDLE",
+            "transitions": [
+                {
+                    "expression": {
+                        "inputEvent": "in",
+                        "boolExpr": "atoi(valueof(\"in\")) == 1",
+                        "delay": ""
+                    },
+                    "nextState": "ACTIVE"
+                },
+                {
+                    "expression": {
+                        "inputEvent": "set_to",
+                        "boolExpr": "",
+                        "delay": ""
+                    },
+                    "nextState": "IDLE"
+                },
+                {
+                    "expression": {
+                        "inputEvent": "req_rt",
+                        "boolExpr": "",
+                        "delay": ""
+                    },
+                    "nextState": "IDLE"
+                }
+            ]
+        },
+        {
+            "name": "ACTIVE",
+            "transitions": [
+                {
+                    "expression": {
+                        "inputEvent": "in",
+                        "boolExpr": "atoi(valueof(\"in\")) == 0",
+                        "delay": ""
+                    },
+                    "nextState": "TIMING"
+                },
+                {
+                    "expression": {
+                        "inputEvent": "set_to",
+                        "boolExpr": "",
+                        "delay": ""
+                    },
+                    "nextState": "ACTIVE"
+                },
+                {
+                    "expression": {
+                        "inputEvent": "req_rt",
+                        "boolExpr": "",
+                        "delay": ""
+                    },
+                    "nextState": "ACTIVE"
+                }
+            ]
+        },
+        {
+            "name": "TIMING",
+            "transitions": [
+                {
+                    "expression": {
+                        "inputEvent": "in",
+                        "boolExpr": "atoi(valueof(\"in\")) == 1",
+                        "delay": ""
+                    },
+                    "nextState": "ACTIVE"
+                },
+                {
+                    "expression": {
+                        "inputEvent": "",
+                        "boolExpr": "",
+                        "delay": "timeout"
+                    },
+                    "nextState": "IDLE"
+                },
+                {
+                    "expression": {
+                        "inputEvent": "set_to",
+                        "boolExpr": "",
+                        "delay": ""
+                    },
+                    "nextState": "TIMING"
+                },
+                {
+                    "expression": {
+                        "inputEvent": "req_rt",
+                        "boolExpr": "",
+                        "delay": ""
+                    },
+                    "nextState": "TIMING"
+                }
+            ]
+        }
+    ]
+}

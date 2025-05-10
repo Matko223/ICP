@@ -1,0 +1,80 @@
+{
+  "name": "Example machine",
+  "description": "This is the description of the machine",
+  "inputs": [
+      "in"
+  ],
+  "outputs": [
+      "out"
+  ],
+  "variables": [
+      {
+          "type": "int",
+          "name": "timeout",
+          "value": "5000"
+      }
+  ],
+  "states": [
+      {
+          "name": "IDLE",
+          "outputExpr": "{ output(\"out\", 0) }"
+      },
+      {
+          "name": "ACTIVE",
+          "outputExpr": "{ output(\"out\", 1) }"
+      },
+      {
+          "name": "TIMING",
+          "outputExpr": "{ }"
+      }
+  ],
+  "transitions": [
+      {
+          "name": "IDLE",
+          "transitions": [
+              {
+                  "expression": {
+                      "inputEvent": "in",
+                      "boolExpr": "atoi(valueof(\"in\")) == 1",
+                      "delay": ""
+                  },
+                  "nextState": "ACTIVE"
+              }
+          ]
+      },
+      {
+          "name": "ACTIVE",
+          "transitions": [
+              {
+                  "expression": {
+                      "inputEvent": "in",
+                      "boolExpr": "atoi(valueof(\"in\")) == 0",
+                      "delay": ""
+                  },
+                  "nextState": "TIMING"
+              }
+          ]
+      },
+      {
+          "name": "TIMING",
+          "transitions": [
+              {
+                  "expression": {
+                      "inputEvent": "",
+                      "boolExpr": "",
+                      "delay": "timeout"
+                  },
+                  "nextState": "IDLE"
+              },
+              {
+                  "expression": {
+                      "inputEvent": "in",
+                      "boolExpr": "atoi(valueof(\"in\")) == 1",
+                      "delay": ""
+                  },
+                  "nextState": "ACTIVE"
+              }
+          ]
+      }
+  ]
+}
