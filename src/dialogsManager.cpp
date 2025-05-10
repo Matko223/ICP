@@ -208,3 +208,52 @@ bool DialogManager::confirmDialog(QWidget *parent, const QString &windowTitle, c
 
     return dialog.exec() == QDialog::Accepted;
 }
+
+bool DialogManager::showHelpDialog(QWidget *parent)
+{
+    QDialog dialog(parent);
+
+    dialog.setWindowTitle("Help");
+
+    QVBoxLayout *layout = new QVBoxLayout(&dialog);
+    QPlainTextEdit *helpText = new QPlainTextEdit(&dialog);
+
+    helpText->setPlainText(R"(
+    APPLICATION USAGE HELP
+
+    This application is used for visual design, simulation, and code generation of Moore finite automata.
+
+    1. User can choose between creating a new automaton or loading existing one from JSON file.
+    2. Every automaton must have a name (required) and can include description (optional).
+    3. In the Main Window, user can design the automaton.
+    4. States and transitions are added to the graphics scene via drag&drop.
+
+    States:
+    - Each state must have:
+        • a name (required)
+        • an optional output expression (e.g., output("out", 1))
+    - The output expression is executed when the automaton enters the state.
+    - User can move states after adding them into the scene.
+
+    Transitions:
+    - Each transition includes the following:
+        • name (required): label identifying the transition
+        • from: starting state of the transition
+        • to: destination state of the transition (indicated by an arrow)
+        • input event: name of the input event
+        • condition (optional): a logical expression that must be satisfied to complete the transition (e.g., atoi(valueof("in")) == 1)
+        • delay (optional): transition occurs after a time delay (if no input is received)
+    )");
+
+    helpText->setReadOnly(true);
+    layout->addWidget(helpText);
+
+    QPushButton *cancelButton = new QPushButton("Cancel", &dialog);
+    layout->addWidget(cancelButton);
+
+    QObject::connect(cancelButton, &QPushButton::clicked, &dialog, &QDialog::accept);
+
+    dialog.setMinimumSize(300, 350);
+    dialog.setLayout(layout);
+    return dialog.exec() == QDialog::Accepted;
+}

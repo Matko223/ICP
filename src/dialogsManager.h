@@ -16,6 +16,7 @@
 #include <QLabel>
 #include <QMessageBox>
 #include <QObject>
+#include <QPlainTextEdit>
 
 class QWidget;
 
@@ -28,7 +29,7 @@ class QWidget;
 class DialogManager
 {
     public:
-        /**
+    /**
          * @brief Opens dialog when adding a new transition
          * @param parent Parent widget
          * @param transitionName Name of the transition
@@ -68,6 +69,13 @@ class DialogManager
          * @return true if clicked OK, false if Cancel was clicked
          */
         static bool confirmDialog(QWidget *parent, const QString &windowTitle, const QString &dialogLabel);
+
+        /**
+         * @brief Opens help usage of the application after pressing f1 or by pressing help in the menu bar
+         * @param parent Parent widget
+         * @return true if click Cancel
+         */
+        static bool showHelpDialog(QWidget *parent);
 };
 
 #endif // DIALOGSMANAGER_H
