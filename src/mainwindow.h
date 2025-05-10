@@ -18,6 +18,8 @@
 #include <QMessageBox>
 #include <QMimeData>
 #include <QTextStream>
+#include <QProcess>
+#include "startWindow.h"
 #include "startWindow.h"
 #include "stateitem.h"
 #include "MooreMachine.h"
@@ -58,13 +60,13 @@ public:
      * @brief Initializes the graphics scene for state diagram
      */
     void initScene();
-    
+
     /**
      * @brief Logs a message to the application log
      * @param str Message to log
      */
     void logText(QString str);
-    
+
     /**
      * @brief Adds a new variable to the Moore machine
      */
@@ -75,7 +77,7 @@ public:
      * @param states List of state definitions
      */
     void buildStatesFromLoaded(const QList<JsonState> &states);
-    
+
     /**
      * @brief Builds transitions from loaded JSON data
      * @param transitions List of transition definitions
@@ -86,36 +88,51 @@ public:
      * @brief Initializes the simulation control panel
      */
     void initializeControlWidget();
-    
+
     /**
      * @brief Starts the Moore machine simulation
      */
     void startSimulation();
-    
+
     /**
      * @brief Pauses the active simulation
      */
     void pauseSimulation();
-    
+
     /**
      * @brief Resets the simulation to initial state
      */
     void resetSimulation();
-    
+
     /**
      * @brief Closes the application window
      */
     void cancelWindow();
-    
+
     /**
      * @brief Clears the graphics scene
      */
     void deleteScene();
-    
+
     /**
      * @brief Initializes the code generation panel
      */
     void initializeGenerateWidget();
+
+    /**
+     * @brief Initializes menu bar
+     */
+    void initializeMenu();
+
+    /**
+     * @brief quit application
+     */
+    void quitApp();
+
+    /**
+     * @brief print help dialog
+     */
+    void menuHelp();
 
     /**
      * @brief Creates a new state at the specified position
@@ -199,6 +216,8 @@ public:
      */
     void generateCode();
 
+    // void compileAndRun(const QString &fileName);
+
     /**
      * @brief Destructor for MainWindow
      */
@@ -209,7 +228,7 @@ private slots:
      * @brief Updates transitions when states are moved
      */
     void updateTransitions();
-    
+
     /**
      * @brief Handles user input during simulation
      */
@@ -225,7 +244,7 @@ private:
     QString lastInput;                          // Last input string
     MooreMachine machine;                       // Moore machine model
     bool simulationStart = false;               // Flag for simulation state
-    QMap<QString, int> stateIndexMap;           // Maps state names to indices
+    QMap<QString, int> stateIndexMap;           // Maps state names to indixes
 };
 
 #endif // MAINWINDOW_H

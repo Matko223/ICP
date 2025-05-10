@@ -54,6 +54,7 @@ MainWindow::MainWindow(const QString &name, const QString &description, QWidget 
 
     initializeControlWidget();
     initializeGenerateWidget();
+    initializeMenu();
 
     // Connect add new variable button
     connect(ui->addVar, &QPushButton::clicked, this , &MainWindow::addNewVariable);
@@ -153,6 +154,28 @@ void MainWindow::initializeGenerateWidget()
     connect(ui->generateCode, &QPushButton::clicked, this, &MainWindow::generateCode);
 }
 
+void MainWindow::initializeMenu()
+{
+    connect(ui->menuHelp_2, &QAction::triggered, this, &MainWindow::menuHelp);
+    connect(ui->menuNew, &QAction::triggered, this, &MainWindow::cancelWindow);
+    connect(ui->menuSave, &QAction::triggered, this, &MainWindow::generateJson);
+    connect(ui->menuGenerate, &QAction::triggered, this, &MainWindow::generateCode);
+    connect(ui->menuQuit, &QAction::triggered, this, &MainWindow::quitApp);
+}
+
+void MainWindow::quitApp()
+{
+    if (DialogManager::confirmDialog(this, "Quit application", "Are you sure you want to quit application?"))
+    {
+        QApplication::quit();
+    }
+}
+
+void MainWindow::menuHelp()
+{
+    DialogManager::showHelpDialog(this);
+}
+
 // Start simulation button handling
 void MainWindow::startSimulation()
 {
@@ -223,7 +246,8 @@ void MainWindow::resetSimulation()
 }
 
 // reset simulation
-// clear scene and all text fieldse
+// clear scene and all text fields
+// clear machine
 void MainWindow::deleteScene()
 {
     if (!DialogManager::confirmDialog(this, "Reset scene", "Are you sure you want to clear the scene?"))
@@ -241,7 +265,9 @@ void MainWindow::deleteScene()
     ui->varValue->clear();
     stateItems.clear();
     transitionItems.clear();
-    lastInput.clear(); // Clear lastInput on reset
+    machine.clear();
+    stateIndexMap.clear();
+    lastInput.clear();
     logText("Scene cleared");
 }
 
@@ -507,14 +533,39 @@ void MainWindow::generateCode()
     CodeGenerator generator;
     if (generator.generateCode(json, fileName.toStdString()))
     {
-        logText("C++ generated");
+        logText("C++ code generated");
     }
     else
     {
         QMessageBox::warning(this, "Error", "Code generating failed");
     }
-
+    // compileAndRun(fileName);
 }
+
+/* TOTO ASI NIE KED BUDU SOCKETY
+void MainWindow::compileAndRun(const QString &fileName)
+{
+    QString bin = fileName;
+    bin.chop(4);
+    #ifdef _WIN32
+        bin += ".exe";
+    #else
+        bin += "_bin";
+    #endif
+
+    QProcess compile;
+    compile.setProgram("g++");
+    compile.setArguments({fileName, "-o", bin, "-static-libgcc", "-static-libstdc++", "-std=c++17"});
+    compile.start();
+    compile.waitForFinished();
+
+    if (compile.exitStatus() != QProcess::NormalExit || compile.exitCode() != 0)
+    {
+        QMessageBox::warning(this, "Compilation Error", compile.readAllStandardError());
+    }
+
+    logText("Compilation success");
+}*/
 
 // destructor
 MainWindow::~MainWindow()
