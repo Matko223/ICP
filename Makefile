@@ -23,13 +23,13 @@ run: all
 
 doxygen:
 	mkdir -p $(DOC_DIR)
-	doxygen Doxyfile
+	doxygen doc/Doxyfile
 
 clean:
 	rm -rf $(BUILD_DIR)
-	rm -rf $(DOC_DIR)
+	rm -rf $(DOC_DIR)/html
 	rm -f $(PROJECT_NAME)
 	$(MAKE) -C $(SRC_DIR) clean
 
 pack:
-	zip -r $(ARCHIVE_NAME) $(SRC_DIR)/ examples/ README.txt Makefile Doxyfile
+	zip -r $(ARCHIVE_NAME) $(SRC_DIR)/ examples/ README.txt Makefile doc/
