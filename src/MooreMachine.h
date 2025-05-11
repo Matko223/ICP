@@ -16,6 +16,10 @@
 #include <algorithm>
 #include <mutex>
 #include <condition_variable>
+
+/**
+ * PREVZATE Z : https://github.com/nlohmann/json
+ */
 #include "json.hpp"
 #include "Structs.h"
 
