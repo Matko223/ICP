@@ -65,7 +65,7 @@ bool DialogManager::createTransitionDialog(QWidget *parent, QString &transitionN
         boolExpr = boolExprEdit->text();
         delay = delayEdit->text();
 
-        if (transitionName.isEmpty() || fromState.isEmpty() || toState.isEmpty()) {
+        if (fromState.isEmpty() || toState.isEmpty()) {
             QMessageBox::warning(parent, "Error", "Empty transition(s)");
             return false;
         }
@@ -243,6 +243,19 @@ bool DialogManager::showHelpDialog(QWidget *parent)
         • input event: name of the input event
         • condition (optional): a logical expression that must be satisfied to complete the transition (e.g., atoi(valueof("in")) == 1)
         • delay (optional): transition occurs after a time delay (if no input is received)
+
+    Simulation
+    - Use the green button to start the simulation
+    - The current state is highlighted during simulation.
+    - Choose one of the inputs and write a value for transition.
+
+    Code Generation
+    - Use the "Generate Code" option to export the automaton into source code.
+
+    Saving and Loading
+    - Automatons are saved as JSON files.
+    - Use the "Save" menu option to export your automaton into JSON.
+    - Use "Open" to load an existing automaton.
     )");
 
     helpText->setReadOnly(true);

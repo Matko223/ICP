@@ -131,9 +131,7 @@ void MainWindow::logText(QString str)
 void MainWindow::initializeControlWidget()
 {
     connect(ui->startSimulation, &QPushButton::clicked, this, &MainWindow::startSimulation);
-    connect(ui->pauseSimulation, &QPushButton::clicked, this, &MainWindow::pauseSimulation);
     connect(ui->deleteButton, &QPushButton::clicked, this, &MainWindow::deleteScene);
-    connect(ui->cancelButton, &QPushButton::clicked, this, &MainWindow::cancelWindow);
     connect(ui->resetSimulation, &QPushButton::clicked, this, &MainWindow::resetSimulation);
 }
 
