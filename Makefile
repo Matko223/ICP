@@ -4,7 +4,7 @@ PROJECT_NAME = proj
 BUILD_DIR = build
 SRC_DIR = src
 DOC_DIR = doc
-ARCHIVE_NAME = xpalesr00-xsedot00-xvalapm00.zip
+ARCHIVE_NAME = xvalapm00-xpalesr00-xsedot00.zip
 
 UNAME := $(shell uname -s)
 ifeq ($(UNAME),Linux)
