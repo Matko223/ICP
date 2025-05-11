@@ -18,10 +18,10 @@ Hlavné funkcie:
 - Vytváranie prechodov medzi stavmi s podmienkami a časovými oneskoreniami
 - Simulácia behu automatu s krokovaním
 - Export a import návrhu automatu vo formáte JSON
-- Generovanie C++ kódu podľa vytvoreného automatu
+- Generovanie kódu v C++, ktorý reprezentuje daný automat 
 
 Obmedzenia:
-- Neimplementované pripojenie cez UDP packety 
+- Neimplementované pripojenie cez UDP sockety 
 - Nefunkčné operácie s premennými počas simulácie
 
 Použité knižnice:

@@ -18,14 +18,14 @@ Nástroj pre vizuálnu editáciu, generovanie kódu a monitorovanie behu interpr
 - Vytváranie prechodov medzi stavmi s podmienkami a časovými oneskoreniami
 - Simulácia behu automatu s krokovaním
 - Export a import návrhu automatu vo formáte JSON
-- Generovanie C++ kódu podľa vytvoreného automatu
+- Generovanie kódu v C++, ktorý reprezentuje daný automat 
 
 ## Spustenie
 - Aplikáciu je možné spustiť z koreňového adresára projektu príkazom `make run`
 - Alternatívne možno najprv skompilovať príkazom `make` a následne spustiť binárku príkazom `./proj`
 
 ## Obmedzenia
-- Neimplementované pripojenie cez UDP packety 
+- Neimplementované pripojenie cez UDP sockety 
 - Nefunkčné operácie s premennými počas simulácie
 
 ## Použité knižnice
