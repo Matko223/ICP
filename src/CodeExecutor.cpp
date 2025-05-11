@@ -23,7 +23,6 @@ bool CodeExecutor::defined(const string& inputName) {
     return false;
 }
 
-// TODO variable handling
 string CodeExecutor::valueof(const string& inputName) {
     for (const auto& input : mooreMachine.getInputs()) {
         if (input == inputName) {
@@ -58,10 +57,8 @@ void CodeExecutor::executeStateExpr(const string& expr) {
         size_t condStart = trimmedExpr.find('{', ifPos) + 1;
         size_t condEnd = trimmedExpr.find('}', condStart);
         string condition = trimmedExpr.substr(condStart, condEnd - condStart);
-        bool condResult = evaluateCond(condition);
 
         // Then we look for body and evaluate it
-        // TODO
         size_t bodyStart = trimmedExpr.find('{', condEnd) + 1;
         size_t bodyEnd = trimmedExpr.find('}', bodyStart);
         string body = trimmedExpr.substr(bodyStart, bodyEnd - bodyStart);
@@ -73,7 +70,6 @@ void CodeExecutor::executeStateExpr(const string& expr) {
     }
 
     // Look for built-in functions in the expr
-    // TODO: remove found func from the expr
     string builtinFuncExpr;
     size_t builtinFuncPos;
     for (const auto& builtinFunc : builtinFuncs) {
@@ -86,7 +82,6 @@ void CodeExecutor::executeStateExpr(const string& expr) {
 
     ExprValue builtinFuncEval = evaluateExpr(builtinFuncExpr);
 
-    // TODO: variables
 }
 
 bool CodeExecutor::evaluateCond(const string& cond) {
@@ -158,7 +153,6 @@ ExprValue CodeExecutor::evaluateExpr(const string& expr) {
     }
 
     // valueof func
-    // TODO: Works only with inputs, would be great for variables too
     size_t valueofPos = expr.find("valueof(");
     if (valueofPos != string::npos) {
         size_t varStart = expr.find('"', valueofPos) + 1;
@@ -186,9 +180,6 @@ ExprValue CodeExecutor::evaluateExpr(const string& expr) {
     if (isNumber(expr)) {
         return stoi(expr);
     }
-
-    // TODO: would be great to add variable value changing
-    // Example timeout = valueof('in')
 
     return -1;
 }

@@ -1,0 +1,62 @@
+{
+    "name": "",
+    "description": "",
+    "inputs": [
+        "integer",
+        "in"
+    ],
+    "outputs": [],
+    "variables": [
+        {
+            "type": "int",
+            "name": "back",
+            "value": "3000"
+        }
+    ],
+    "states": [
+        {
+            "name": "LOOP",
+            "outputExpr": "output(\"out\", loop)"
+        },
+        {
+            "name": "NEXT",
+            "outputExpr": "output(\"out\", next)"
+        }
+    ],
+    "transitions": [
+        {
+            "name": "LOOP",
+            "transitions": [
+                {
+                    "expression": {
+                        "inputEvent": "in",
+                        "boolExpr": "",
+                        "delay": ""
+                    },
+                    "nextState": "LOOP"
+                },
+                {
+                    "expression": {
+                        "inputEvent": "integer",
+                        "boolExpr": "atoi(valueof(\"integer\")) > 5",
+                        "delay": ""
+                    },
+                    "nextState": "NEXT"
+                }
+            ]
+        },
+        {
+            "name": "NEXT",
+            "transitions": [
+                {
+                    "expression": {
+                        "inputEvent": "",
+                        "boolExpr": "",
+                        "delay": "back"
+                    },
+                    "nextState": "LOOP"
+                }
+            ]
+        }
+    ]
+}

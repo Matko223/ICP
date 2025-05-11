@@ -30,7 +30,7 @@
         },
         {
             "name": "NEXT",
-            "outputExpr": "output(\"output\", 0)"
+            "outputExpr": "output(\"out\", 0)"
         }
     ],
     "transitions": [

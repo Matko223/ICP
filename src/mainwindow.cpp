@@ -102,7 +102,7 @@ void MainWindow::handleInput() {
     };
 
     ui->inValue->clear();
-
+    ui->inLast->appendPlainText(input + " = " + value);
     ui->outValue->appendPlainText(QString::fromStdString(machine.getCurrentOutput()));
 }
 
@@ -183,20 +183,7 @@ void MainWindow::startSimulation()
     simulationStart = true;
     machine.processStartState();
     highlightState(currentState);
-}
-
-// Pause simulation button handling
-void MainWindow::pauseSimulation()
-{
-    if (!simulationStart)
-    {
-        QMessageBox::warning(this, "Error", "Simulation hasn´t started yet");
-        return;
-    }
-
-    if (currentState) {
-        logText("Simulation paused at state: " + stateItems.key(currentState));
-    }
+    ui->outValue->appendPlainText(QString::fromStdString(machine.getCurrentOutput()));
 }
 
 void MainWindow::resetSimulation()
@@ -215,6 +202,7 @@ void MainWindow::resetSimulation()
 
     machine.interruptDelay();
     ui->outValue->clear();
+    ui->inLast->clear();
     simulationStart = false;
     machine.setInitialOutput();
     machine.processStartState();
@@ -248,8 +236,8 @@ void MainWindow::deleteScene()
     }
 
     scene->clear();
+    ui->inLast->clear();
     ui->outValue->clear();
-    ui->varValue->clear();
     stateItems.clear();
     transitionItems.clear();
     machine.clear();
@@ -560,7 +548,7 @@ void MainWindow::handleStateUpdate(int index)
     if (index >= 0 && index < static_cast<int>(states.size()))
     {
         QString stateName = QString::fromStdString(states[index].name);
-        logText("DELAY, moving to state: " + stateName);
+        logText("TIMEOUT, moving to state: " + stateName);
     }
 }
 

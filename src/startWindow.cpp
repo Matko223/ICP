@@ -16,14 +16,14 @@ StartupWindow::StartupWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::
     initButtons();
 }
 
-// connect buttons
+// Connect buttons
 void StartupWindow::initButtons()
 {
     connect(ui->createButton, &QPushButton::clicked, this, &StartupWindow::createButton);
     connect(ui->loadButton, &QPushButton::clicked, this, &StartupWindow::loadButton);
 }
 
-// handle create button action
+// Handle create button action
 void StartupWindow::createButton()
 {
     QString name = ui->name->text();
@@ -39,11 +39,11 @@ void StartupWindow::createButton()
     this->close(); // close this window
 }
 
-// handle load button
+// Handle load button action
 void StartupWindow::loadButton()
 {
-    // open file dialog in actual window
-    QString filePath = QFileDialog::getOpenFileName(this, "Load automaton", "", "(*.json *.txt)");
+    // Open file dialog in actual window
+    QString filePath = QFileDialog::getOpenFileName(this, "Load automaton", "","JSON Files (*.json)");
     if (filePath.isEmpty())
     {
         return;
@@ -56,7 +56,6 @@ void StartupWindow::loadButton()
     this->close();
 }
 
-// destructor
 StartupWindow::~StartupWindow()
 {
     delete ui;

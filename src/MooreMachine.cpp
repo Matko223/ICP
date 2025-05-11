@@ -476,7 +476,7 @@ void MooreMachine::printMachine() {
     cout << "----- Moore Machine Details -----\n";
 
     // Prints name of the machine
-    cout << "Machine name:\n" 
+    cout << "Machine name:\n"
     << "   " << machineName << "\n";
 
     // Prints description of the machine
@@ -544,7 +544,7 @@ void MooreMachine::createJSONFile(const string& name) {
     jsonFile["description"] = machineDescription;
     jsonFile["inputs"] = inputs;
     jsonFile["outputs"] = outputs;
-    
+
     vector<nlohmann::ordered_json> varsJson;
     for (const auto& var : variables) {
         varsJson.push_back(varToJSON(var));
@@ -652,12 +652,12 @@ void MooreMachine::loadFromJSONFile(const string& filename) {
     // Load transitions for states
     for (const auto& transBlock : jsonFile.at("transitions")) {
         string stateName = transBlock.at("name").get<string>();
-    
+
         // Find the corresponding state by name
         auto it = find_if(states.begin(), states.end(), [&](const State& s) {
             return s.name == stateName;
         });
-        
+
         // If state exists get all its transitions
         if (it != states.end()) {
             for (const auto& transition : transBlock.at("transitions")) {
@@ -666,14 +666,14 @@ void MooreMachine::loadFromJSONFile(const string& filename) {
                 expr.inputEvent = exprJson.at("inputEvent").get<string>();
                 expr.boolExpr = exprJson.at("boolExpr").get<string>();
                 expr.delay = exprJson.at("delay").get<string>();
-    
+
                 string nextStateName = transition.at("nextState").get<string>();
-    
+
                 // Find next state's index
                 auto nextIt = find_if(states.begin(), states.end(), [&](const State& s) {
                     return s.name == nextStateName;
                 });
-                
+
                 // If next state exists then get its index
                 if (nextIt != states.end()) {
                     // Compute the index of found state
@@ -751,57 +751,3 @@ void MooreMachine::clear() {
     autoTransition = nullptr;
     interruptDelay();
 }
-
-/* int main() {
-    MooreMachine machine;
-
-    // Add name and description
-    machine.addMachineName("Example machine");
-    machine.addMachineDescription("This is the description of the machine");
-
-    // Add states
-    int s0 = machine.addStartState("IDLE", "{ output(\"out\", 0) }"); // name = IDLE, state 0, output = 1, start state
-    int s1 = machine.addState("ACTIVE", "{ output(\"out\", 1) }"); // name = ACTIVE, state 1, output = 0
-    int s2 = machine.addState("TIMING", "{ }"); // name = TIMING,  state 2, output = -1
-
-    // Add variables
-    machine.addVariable("int", "timeout", "5000");
-
-    // Add transitions
-    machine.addTransition(s0, "in [ atoi(valueof(\"in\")) == 1  ]", s1); // state 0 -> state 1 on "in == 1"
-    machine.addTransition(s1, "in [ atoi(valueof(\"in\")) == 0  ]", s2); // state 0 -> state 2 on "in == 0"
-    machine.addTransition(s2, "in [ atoi(valueof(\"in\")) == 1  ]", s1); // state 1 -> state 0 on "in == 1"
-    machine.addTransition(s2, "@ timeout", s0); // state 1 -> state 2 on "timeout"
-
-    //machine.checkReachability();
-    //machine.checkDeadStates();
-    //machine.checkRedundancy();
-
-    //machine.createJSONFile("automat");
-
-    machine.addInputs();
-    machine.addOutputs();
-    machine.setInitialOutput();
-
-    machine.processStartState();
-
-    machine.printMachine();
-
-
-    machine.processInput("in", "1");
-
-    machine.printMachine();
-
-    machine.processInput("in", "0");
-
-    machine.printMachine();
-
-    //this_thread::sleep_for(chrono::milliseconds(12000));
-
-    //machine.printMachine();
-
-    //machine.loadFromJSONFile("automat.json");
-    //machine.printMachine();
-
-    return 0;
-} */

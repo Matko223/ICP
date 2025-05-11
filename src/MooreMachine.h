@@ -385,4 +385,4 @@ public:
     void clear();
 };
 
-#endif
+#endif // MOORE_MACHINE_H

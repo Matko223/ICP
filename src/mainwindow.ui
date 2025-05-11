@@ -263,7 +263,7 @@ border: 1px solid rgb(0,0,0);</string>
       <x>10</x>
       <y>100</y>
       <width>131</width>
-      <height>101</height>
+      <height>191</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout">
@@ -298,6 +298,12 @@ border: 1px solid rgb(0,0,0);</string>
      </item>
      <item>
       <widget class="QComboBox" name="inDropdown">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>30</height>
+        </size>
+       </property>
        <property name="maximumSize">
         <size>
          <width>16777215</width>
@@ -314,7 +320,7 @@ border: 1px solid rgb(0,0,0);</string>
        <property name="minimumSize">
         <size>
          <width>0</width>
-         <height>0</height>
+         <height>30</height>
         </size>
        </property>
        <property name="maximumSize">
@@ -324,7 +330,23 @@ border: 1px solid rgb(0,0,0);</string>
         </size>
        </property>
        <property name="placeholderText">
-        <string>Value</string>
+        <string>Enter input value</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPlainTextEdit" name="inLast">
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>80</height>
+        </size>
+       </property>
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
+       <property name="placeholderText">
+        <string>Last inputs</string>
        </property>
       </widget>
      </item>
@@ -334,9 +356,9 @@ border: 1px solid rgb(0,0,0);</string>
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>200</y>
+      <y>290</y>
       <width>131</width>
-      <height>261</height>
+      <height>171</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -384,7 +406,7 @@ border: 1px solid rgb(0,0,0);</string>
         <bool>true</bool>
        </property>
        <property name="placeholderText">
-        <string>State outputs</string>
+        <string>Last outputs</string>
        </property>
       </widget>
      </item>
